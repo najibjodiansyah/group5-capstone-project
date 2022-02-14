@@ -62,3 +62,26 @@ func (ur *UserRepository) Register(user entities.User) (entities.User, error) {
 
 	return user, nil
 }
+
+func (ur *UserRepository)GetById(id int)(entities.UserResponseFormat, error){
+	var user entities.UserResponseFormat
+	stmt, err := ur.db.Prepare("select id, name, email, created_at from users where id = ?")
+	if err != nil {
+		return user, errors.New("internal server error") 
+	}
+
+	res, err := stmt.Query(id)
+	if err != nil{
+		return user, errors.New("internal server error") 
+	}
+
+	if isExist := res.Next(); !isExist {
+		return user, errors.New("internal server error") 
+	}
+
+	errScan := res.Scan(&user.Id, &user.Name, &user.Email, &user.CreatedAt)
+	if errScan != nil {
+		return user, errScan
+	}
+	return user, nil
+}

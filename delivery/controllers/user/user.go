@@ -5,6 +5,7 @@ import (
 	userRepo "capstone-project/repository/user"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	response "capstone-project/delivery/commons"
 
@@ -47,5 +48,22 @@ func (uc *UserController)Register() echo.HandlerFunc{
 	}
 
 	return c.JSON(http.StatusOK, response.SuccessOperationDefault("success", "success create user"))
+	}
+}
+
+func (uc *UserController) GetById() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userId, err := strconv.Atoi(c.Param("id"))
+
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert id"))
+		}
+
+		user, err := uc.repository.GetById(userId)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to fetch data"))
+		}
+
+		return c.JSON(http.StatusOK, response.SuccessOperation("success", "success get user", user))
 	}
 }

@@ -9,5 +9,6 @@ import (
 func RegisterPath(e *echo.Echo, userConstroller *user.UserController) {
 	api := e.Group("/api/v1")
 	//User
-	api.POST("/user", userConstroller.Register())
+	api.POST("/users", userConstroller.Register())
+	api.GET("/users/:id", userConstroller.GetById())
 }

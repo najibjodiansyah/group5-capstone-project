@@ -11,3 +11,10 @@ type User struct{
 	CreatedAt 	time.Time
 	DeletedAt 	time.Time
 }
+type UserResponseFormat struct {
+	Id        int    
+	Name      string 
+	Email     string 
+	Avatar	  string 
+	CreatedAt time.Time 
+}
