@@ -21,7 +21,7 @@ func New(user userRepo.User) *UserController {
 }
 
 
-func (uc *UserController)Register() echo.HandlerFunc{
+func (uc UserController)Register() echo.HandlerFunc{
 	return func(c echo.Context) error {
 	
 	var input RegisterUserFormat
@@ -51,7 +51,7 @@ func (uc *UserController)Register() echo.HandlerFunc{
 	}
 }
 
-func (uc *UserController) GetById() echo.HandlerFunc {
+func (uc UserController) GetById() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		userId, err := strconv.Atoi(c.Param("id"))
 
@@ -65,6 +65,7 @@ func (uc *UserController) GetById() echo.HandlerFunc {
 		}
 
 		var responseUser ResponseUserFormat
+		responseUser.ID = user.ID
 		responseUser.Name = user.Name
 		responseUser.Email = user.Email
 		responseUser.Avatar = user.Avatar
@@ -120,7 +121,7 @@ func (uc UserController)Update() echo.HandlerFunc {
 	}
 }
 
-func (uc *UserController)Delete()echo.HandlerFunc{
+func (uc UserController)Delete()echo.HandlerFunc{
 	return func(c echo.Context) error {
 		// get id from param
 		userId, errConv := strconv.Atoi(c.Param("id"))
