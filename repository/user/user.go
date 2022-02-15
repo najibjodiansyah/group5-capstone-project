@@ -94,7 +94,35 @@ func (ur *UserRepository)Update(id int, user entities.User) error {
 	}
 	notAffected, _ := result.RowsAffected()
 	if notAffected == 0 {
+		log.Println("rows affected is 0 while delete user")
 		return  errors.New("internal server error")
 	}
+	return nil
+}
+
+func (ur *UserRepository) Delete (id int) error {
+	stmt, err := ur.db.Prepare("UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL")
+	if err != nil {
+		log.Println(err)
+		return  errors.New("internal server error") 
+	}
+
+	res, err := stmt.Exec(id)
+	if err != nil {
+		log.Println(err)
+		return  errors.New("internal server error") 
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	if rowsAffected == 0 {
+		log.Println("rows affected is 0 while delete user")
+		return err
+	}
+
 	return nil
 }

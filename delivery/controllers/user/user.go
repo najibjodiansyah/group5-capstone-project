@@ -119,3 +119,20 @@ func (uc UserController)Update() echo.HandlerFunc {
 		return c.JSON(http.StatusOK, response.SuccessOperationDefault("success", "success Update user"))
 	}
 }
+
+func (uc *UserController)Delete()echo.HandlerFunc{
+	return func(c echo.Context) error {
+		// get id from param
+		userId, errConv := strconv.Atoi(c.Param("id"))
+		if errConv != nil {
+			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert id"))
+		}
+		// delete user based on id from database
+		errDelete := uc.repository.Delete(userId)
+		if errDelete != nil {
+			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "data not found"))
+		}
+
+		return c.JSON(http.StatusOK, response.SuccessOperationDefault("success", "delete success"))
+	}
+}

@@ -12,4 +12,5 @@ func RegisterPath(e *echo.Echo, userConstroller *user.UserController) {
 	api.POST("/users", userConstroller.Register())
 	api.GET("/users/:id", userConstroller.GetById())
 	api.PUT("/users/:id", userConstroller.Update())
+	api.DELETE("/users/:id", userConstroller.Delete())
 }
