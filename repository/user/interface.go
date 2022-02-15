@@ -4,5 +4,6 @@ import "capstone-project/entities"
 
 type User interface{
 	Register(entities.User)(entities.User, error)
-	GetById(id int)(entities.UserResponseFormat, error)
+	GetById(id int)(entities.User, error)
+	Update(id int, user entities.User) error
 }
