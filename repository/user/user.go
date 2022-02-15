@@ -73,6 +73,9 @@ func (ur *UserRepository)GetById(id int)(entities.User, error){
 	if err != nil{
 		return user, errors.New("internal server error") 
 	}
+
+	defer res.Close()
+
 	if isExist := res.Next(); !isExist {
 		return user, errors.New("internal server error") 
 	}

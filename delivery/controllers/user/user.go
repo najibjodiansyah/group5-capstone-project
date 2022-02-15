@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	response "capstone-project/delivery/commons"
+	"capstone-project/delivery/middlewares"
 
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
@@ -53,7 +54,16 @@ func (uc UserController)Register() echo.HandlerFunc{
 
 func (uc UserController) GetById() echo.HandlerFunc {
 	return func(c echo.Context) error {
+		id, _, err := middlewares.ExtractToken(c)
+		if err != nil {
+			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
+		}
+
 		userId, err := strconv.Atoi(c.Param("id"))
+
+		if userId != id {
+			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
+		}
 
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert id"))
@@ -77,6 +87,10 @@ func (uc UserController) GetById() echo.HandlerFunc {
 
 func (uc UserController)Update() echo.HandlerFunc {
 	return func(c echo.Context) error {
+		id, _, err := middlewares.ExtractToken(c)
+		if err != nil {
+			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
+		}
 		// NOTES : misal gada perubahan pas update / update data yang sama
 		// NOTES : email gaboleh ganti dengan email yang sudah dipakai user lain
 		user := entities.User{}
@@ -87,6 +101,10 @@ func (uc UserController)Update() echo.HandlerFunc {
 		userid, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert id"))
+		}
+
+		if userid != id {
+			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
 		}
 
 		hashedPassword, errEncrypt := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
@@ -123,11 +141,20 @@ func (uc UserController)Update() echo.HandlerFunc {
 
 func (uc UserController)Delete()echo.HandlerFunc{
 	return func(c echo.Context) error {
+		id, _, err := middlewares.ExtractToken(c)
+		if err != nil {
+			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
+		}
 		// get id from param
 		userId, errConv := strconv.Atoi(c.Param("id"))
 		if errConv != nil {
 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert id"))
 		}
+
+		if userId != id {
+			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
+		}
+
 		// delete user based on id from database
 		errDelete := uc.repository.Delete(userId)
 		if errDelete != nil {
