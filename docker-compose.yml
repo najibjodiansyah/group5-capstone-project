@@ -1,0 +1,39 @@
+services:
+
+  appDb:
+    image: bitnami/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: toor
+      MYSQL_DATABASE: capstoneproject
+    ports: 
+      - 3306:3306
+    volumes:
+      # - './data:/bitnami/mysql/data'
+      - './initdb:/docker-entrypoint-initdb.d'
+      - 'mysql_data:/bitnami/mysql/data'
+    healthcheck:
+      test: ["CMD", "mysql", "-u", "root",  "-ptoor", "-e", "show schemas"]
+      interval: 10s 
+
+  app:
+    build: .
+    restart: always
+    depends_on:
+      appDb:
+        condition: service_healthy
+    environment:
+      HTTP_PORT: 8080
+      DB_CONNECTION_STRING: root:toor@tcp(appDb:3306)/capstoneproject?charset=utf8&parseTime=True&loc=Local
+      AWS_REGION: ap-southeast-1
+      AWS_BUCKET: capstone-group-5
+      AWS_ACCESSKEYID: AKIAYTJQKS4D5NXJVF5Q
+      AWS_SECRETKEY: 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
+
+      STORAGE: db
+    ports:
+      - 80:8080
+
+volumes:
+  mysql_data:
+    driver: local
