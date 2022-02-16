@@ -7,11 +7,11 @@ import (
 	"log"
 )
 
-type UserRepository struct{
+type UserRepository struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) *UserRepository{
+func New(db *sql.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
@@ -63,21 +63,21 @@ func (ur *UserRepository) Register(user entities.User) (entities.User, error) {
 	return user, nil
 }
 
-func (ur *UserRepository)GetById(id int)(entities.User, error){
+func (ur *UserRepository) GetById(id int) (entities.User, error) {
 	var user entities.User
 	stmt, err := ur.db.Prepare("select id, name, email, password, avatar, created_at from users where id = ? and deleted_at is NULL")
 	if err != nil {
-		return user, errors.New("internal server error") 
+		return user, errors.New("internal server error")
 	}
 	res, err := stmt.Query(id)
-	if err != nil{
-		return user, errors.New("internal server error") 
+	if err != nil {
+		return user, errors.New("internal server error")
 	}
 
 	defer res.Close()
 
 	if isExist := res.Next(); !isExist {
-		return user, errors.New("internal server error") 
+		return user, errors.New("internal server error")
 	}
 	errScan := res.Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.Avatar, &user.CreatedAt)
 	if errScan != nil {
@@ -86,34 +86,34 @@ func (ur *UserRepository)GetById(id int)(entities.User, error){
 	return user, nil
 }
 
-func (ur *UserRepository)Update(id int, user entities.User) error {
+func (ur *UserRepository) Update(id int, user entities.User) error {
 	stmt, err := ur.db.Prepare("UPDATE users SET name= ?, email= ?, password= ?, avatar= ? WHERE id = ? and deleted_at is NULL")
 	if err != nil {
-		return  errors.New("internal server error") 
+		return errors.New("internal server error")
 	}
 	result, err := stmt.Exec(user.Name, user.Email, user.Password, user.Avatar, id)
 	if err != nil {
-		return  errors.New("internal server error") 
+		return errors.New("internal server error")
 	}
 	notAffected, _ := result.RowsAffected()
 	if notAffected == 0 {
 		log.Println("rows affected is 0 while delete user")
-		return  errors.New("internal server error")
+		return errors.New("internal server error")
 	}
 	return nil
 }
 
-func (ur *UserRepository) Delete (id int) error {
+func (ur *UserRepository) Delete(id int) error {
 	stmt, err := ur.db.Prepare("UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL")
 	if err != nil {
 		log.Println(err)
-		return  errors.New("internal server error") 
+		return errors.New("internal server error")
 	}
 
 	res, err := stmt.Exec(id)
 	if err != nil {
 		log.Println(err)
-		return  errors.New("internal server error") 
+		return errors.New("internal server error")
 	}
 
 	rowsAffected, err := res.RowsAffected()
