@@ -42,7 +42,7 @@ func (uc UserController) Register() echo.HandlerFunc {
 		user := entities.User{}
 		user.Name = input.Name
 		user.Email = input.Email
-		user.Avatar = "https://p7.hiclipart.com/preview/340/956/944/computer-icons-user-profile-head-ico-download.jpg"
+		user.Avatar = "https://d11a6trkgmumsb.cloudfront.net/original/3X/d/8/d8b5d0a738295345ebd8934b859fa1fca1c8c6ad.jpeg"
 
 		hashedPassword, errEncrypt := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 		if errEncrypt != nil {
