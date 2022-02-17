@@ -7,14 +7,20 @@ import (
 	"capstone-project/delivery/routes"
 	_authRepo "capstone-project/repository/auth"
 	_userRepo "capstone-project/repository/user"
+	"log"
 	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
 	// initialize database connection
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 	connectionString := os.Getenv("DB_CONNECTION_STRING")
 	db, err := config.InitDB(connectionString)
 	if err != nil {
