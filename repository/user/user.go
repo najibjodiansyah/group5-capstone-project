@@ -48,13 +48,13 @@ func (ur *UserRepository) Register(user entities.User) (entities.User, error) {
 	if id != 0 {
 		return user, errors.New("User Already exist") // User A:ready exist
 	}
-	stmt, err := ur.db.Prepare("insert into users(name, email, password) values(?,?,?)")
+	stmt, err := ur.db.Prepare("insert into users(name, email, password, avatar) values(?,?,?,?)")
 	if err != nil {
 		log.Println(err)
 		return user, errors.New("internal server error")
 	}
 
-	_, errr := stmt.Exec(user.Name, user.Email, user.Password)
+	_, errr := stmt.Exec(user.Name, user.Email, user.Password, user.Avatar)
 	if errr != nil {
 		log.Println(errr)
 		return user, errors.New("internal server error")
