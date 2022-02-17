@@ -23,6 +23,7 @@ services:
       appDb:
         condition: service_healthy
     environment:
+      DB_CONNECTION_STRING: root:toor@tcp(appDb:3306)/capstoneproject?charset=utf8&parseTime=True&loc=Local
       HTTP_PORT: 8080
       STORAGE: db
     ports:
