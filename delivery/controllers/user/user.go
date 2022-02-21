@@ -63,7 +63,7 @@ func (uc UserController) Register() echo.HandlerFunc {
 
 func (uc UserController) GetById() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		id, _, err := middlewares.ExtractToken(c)
+		id, role, err := middlewares.ExtractToken(c)
 		if err != nil {
 			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
 		}
@@ -73,6 +73,8 @@ func (uc UserController) GetById() echo.HandlerFunc {
 		if userId != id {
 			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
 		}
+
+		fmt.Println(role)
 
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert id"))
@@ -97,7 +99,7 @@ func (uc UserController) GetById() echo.HandlerFunc {
 
 func (uc UserController) Update() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		id, _, err := middlewares.ExtractToken(c)
+		id, role, err := middlewares.ExtractToken(c)
 		if err != nil {
 			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
 		}
@@ -116,6 +118,8 @@ func (uc UserController) Update() echo.HandlerFunc {
 		if userid != id {
 			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
 		}
+
+		fmt.Println(role)
 
 		hashedPassword, errEncrypt := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 		if errEncrypt != nil {
@@ -185,7 +189,7 @@ func (uc UserController) Update() echo.HandlerFunc {
 
 func (uc UserController) Delete() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		id, _, err := middlewares.ExtractToken(c)
+		id, role, err := middlewares.ExtractToken(c)
 		if err != nil {
 			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
 		}
@@ -198,6 +202,8 @@ func (uc UserController) Delete() echo.HandlerFunc {
 		if userId != id {
 			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
 		}
+		
+		fmt.Println(role)
 
 		// delete user based on id from database
 		errDelete := uc.repository.Delete(userId)

@@ -46,7 +46,7 @@ func (ac AuthController) Login() echo.HandlerFunc {
 		return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("failed", "Password does not match"))
 	}
 
-	token, err := middlewares.CreateToken(loginData.ID,loginData.Name)
+	token, err := middlewares.CreateToken(loginData.ID,loginData.Role)
 
 	// detect failure in creating token
 	if err != nil {
