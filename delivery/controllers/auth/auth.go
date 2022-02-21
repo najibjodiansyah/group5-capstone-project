@@ -53,12 +53,12 @@ func (ac AuthController) Login() echo.HandlerFunc {
 		return c.JSON(http.StatusInternalServerError, response.InternalServerError("failed", err.Error()))
 	}
 
-	var response LoginResponseFormat
-	response.Id = loginData.ID
-	response.Name = loginData.Name
-	response.Token = token
+	var responseFormat LoginResponseFormat
+	responseFormat.Id = loginData.ID
+	responseFormat.Name = loginData.Name
+	responseFormat.Token = token
+	responseFormat.Role = loginData.Role
 
-
-	return c.JSON(http.StatusOK, response)
+	return c.JSON(http.StatusOK, response.SuccessOperation("success", "success login", responseFormat))
 }
 }

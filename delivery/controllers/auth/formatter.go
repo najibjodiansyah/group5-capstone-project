@@ -7,5 +7,6 @@ type LoginRequestFormat struct {
 type LoginResponseFormat struct {
 	Id    int    `json:"id" form:"id"`
 	Name  string `json:"name" form:"name"`
+	Role string `json:"role" form:"role"`
 	Token string `json:"token" form:"token"`
 }
