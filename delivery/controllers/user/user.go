@@ -25,8 +25,8 @@ type UserController struct {
 	repository userRepo.User
 }
 
-func New(user userRepo.User) *UserController {
-	return &UserController{repository: user}
+func New(repository userRepo.User) *UserController {
+	return &UserController{repository: repository}
 }
 
 func (uc UserController) Register() echo.HandlerFunc {

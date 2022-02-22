@@ -2,9 +2,11 @@ package main
 
 import (
 	"capstone-project/config"
+	_assetController "capstone-project/delivery/controllers/asset"
 	_authController "capstone-project/delivery/controllers/auth"
 	_userController "capstone-project/delivery/controllers/user"
 	"capstone-project/delivery/routes"
+	_assetRepo "capstone-project/repository/asset"
 	_authRepo "capstone-project/repository/auth"
 	_userRepo "capstone-project/repository/user"
 	"log"
@@ -31,16 +33,18 @@ func main() {
 	// initialize model
 	userRepo := _userRepo.New(db)
 	authRepo := _authRepo.New(db)
+	assetRepo := _assetRepo.New(db)
 
 	// initialize controller
 	userController := _userController.New(userRepo)
 	authController := _authController.New(authRepo)
+	assetController := _assetController.New(assetRepo)
 
 	// create new echo
 	e := echo.New()
 
 	e.Pre(middleware.RemoveTrailingSlash(), middleware.CORS())
-	routes.RegisterPath(e, userController, authController)
+	routes.RegisterPath(e, userController, authController, assetController)
 
 	// start the server, and log if it fails
 	e.Logger.Fatal(e.Start(":8080"))
