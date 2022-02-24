@@ -4,6 +4,7 @@ import (
 	"capstone-project/entities"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 )
 
@@ -51,8 +52,9 @@ func (ar *AssetRepository) GenerateItem(assetName string, assetId int) error {
 
 func (ar *AssetRepository) GetById(id int)(entities.Asset,error){
 	var asset entities.Asset
-	stmt, err := ar.db.Prepare("select a.id,a.name,a.description,c.name,a.quantity,a.picture from assets as a inner join categories as c on a.categoryid = c.id  where id = ?")
+	stmt, err := ar.db.Prepare("select a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat from assets as a inner join categories as c on a.categoryid = c.id  where a.id = ?")
 	if err != nil {
+		fmt.Println(err)
 		return asset, errors.New("internal server error")
 	}
 	res, err := stmt.Query(id)
@@ -66,7 +68,7 @@ func (ar *AssetRepository) GetById(id int)(entities.Asset,error){
 		return asset, errors.New("internal server error")
 	}
 
-	errScan := res.Scan(&asset.Id, &asset.Name, &asset.Name, &asset.Description, &asset.Category, &asset.Picture)
+	errScan := res.Scan(&asset.Id, &asset.Name, &asset.Description, &asset.Category.Id, &asset.Category.Name, &asset.Quantity, &asset.Picture, &asset.CreatedAt)
 	if errScan != nil {
 		return asset, errScan
 	}

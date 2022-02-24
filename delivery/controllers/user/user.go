@@ -63,21 +63,18 @@ func (uc UserController) Register() echo.HandlerFunc {
 
 func (uc UserController) GetById() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		id, role, err := middlewares.ExtractToken(c)
+		id, _, err := middlewares.ExtractToken(c)
 		if err != nil {
 			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
 		}
 
 		userId, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert id"))
+		}
 
 		if userId != id {
 			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
-		}
-
-		fmt.Println(role)
-
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert id"))
 		}
 
 		user, err := uc.repository.GetById(userId)
