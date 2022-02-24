@@ -26,4 +26,5 @@ func RegisterPath(
 	//Asset
 	api.POST("/assets", assetController.Create())
 	api.GET("/assets/:id", assetController.GetById())
+	api.GET("/assets", assetController.GetAll())
 }

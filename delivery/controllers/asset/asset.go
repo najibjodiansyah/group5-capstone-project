@@ -6,6 +6,7 @@ import (
 	assetRepo "capstone-project/repository/asset"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"strconv"
 
@@ -86,7 +87,39 @@ func (ac AssetController)GetById()echo.HandlerFunc{
 
 func (ac AssetController)GetAll()echo.HandlerFunc{
 	return func(c echo.Context) error {
-		var assets []ResponeAssetFormat
-		return c.JSON(http.StatusOK, response.SuccessOperation("success", "success get all asset", assets))
+
+		var category,pagination string
+		category = c.QueryParam("category")
+		pagination = c.QueryParam("page")
+		if category == "" {
+			category = "0"
+		}
+		if pagination == "" {
+			pagination = "0"
+		}
+
+		categoryid, err := strconv.Atoi(category)
+			if err != nil {
+				return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert category_id"))
+			}
+
+		page, err := strconv.Atoi(pagination)
+			if err != nil {
+				return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert category_id"))
+			}
+
+		assets,totalAsset, err := ac.repository.GetAll(page,categoryid)
+		if err!= nil {
+			fmt.Println(err)
+			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to fetch data"))
+		}
+		limit := 5
+		totalPage := int(math.Ceil(float64(totalAsset) / float64(limit)))
+
+		var responseData responseAll
+		responseData.Totalpage = totalPage
+		responseData.Assets = assets
+
+		return c.JSON(http.StatusOK, response.SuccessOperation("success", "success get all asset", responseData))
 	}
 }
