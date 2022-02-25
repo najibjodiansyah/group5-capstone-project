@@ -41,7 +41,7 @@ func (ac AssetController)Create()echo.HandlerFunc {
 		asset := entities.Asset{}
 		asset.Name = input.Name
 		asset.Description = input.Description
-		asset.Category.Id = input.Category
+		asset.CategoryId = input.Category
 		asset.Quantity = input.Quantity
 		src, file, err := c.Request().FormFile("picture")
 		if err != nil {
@@ -116,8 +116,8 @@ func (ac AssetController)GetById()echo.HandlerFunc{
 		Responseasset.Id = asset.Id
 		Responseasset.Name = asset.Name
 		Responseasset.Description = asset.Description
-		Responseasset.Categoryid = asset.Category.Id
-		Responseasset.Category = asset.Category.Name
+		Responseasset.Categoryid = asset.CategoryId
+		Responseasset.Category = asset.CategoryName
 		Responseasset.Quantity = asset.Quantity
 		Responseasset.Picture = asset.Picture
 		Responseasset.CreatedAt = asset.CreatedAt
