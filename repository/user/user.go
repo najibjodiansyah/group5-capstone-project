@@ -48,13 +48,13 @@ func (ur *UserRepository) Register(user entities.User) (entities.User, error) {
 	if id != 0 {
 		return user, errors.New("User Already exist") // User A:ready exist
 	}
-	stmt, err := ur.db.Prepare("insert into users(name, email, password, avatar) values(?,?,?,?)")
+	stmt, err := ur.db.Prepare("insert into users(name, email, password, role, avatar) values(?,?,?,?,?)")
 	if err != nil {
 		log.Println(err)
 		return user, errors.New("internal server error")
 	}
 
-	_, errr := stmt.Exec(user.Name, user.Email, user.Password, user.Avatar)
+	_, errr := stmt.Exec(user.Name, user.Email, user.Password, user.Role, user.Avatar)
 	if errr != nil {
 		log.Println(errr)
 		return user, errors.New("internal server error")
@@ -65,7 +65,7 @@ func (ur *UserRepository) Register(user entities.User) (entities.User, error) {
 
 func (ur *UserRepository) GetById(id int) (entities.User, error) {
 	var user entities.User
-	stmt, err := ur.db.Prepare("select id, name, email, password, avatar, created_at from users where id = ? and deleted_at is NULL")
+	stmt, err := ur.db.Prepare("select id, name, email, password, role, avatar, created_at from users where id = ? and deleted_at is NULL")
 	if err != nil {
 		return user, errors.New("internal server error")
 	}
@@ -79,7 +79,7 @@ func (ur *UserRepository) GetById(id int) (entities.User, error) {
 	if isExist := res.Next(); !isExist {
 		return user, errors.New("internal server error")
 	}
-	errScan := res.Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.Avatar, &user.CreatedAt)
+	errScan := res.Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.Role, &user.Avatar, &user.CreatedAt)
 	if errScan != nil {
 		return user, errScan
 	}
@@ -87,11 +87,11 @@ func (ur *UserRepository) GetById(id int) (entities.User, error) {
 }
 
 func (ur *UserRepository) Update(id int, user entities.User) error {
-	stmt, err := ur.db.Prepare("UPDATE users SET name= ?, email= ?, password= ?, avatar= ? WHERE id = ? and deleted_at is NULL")
+	stmt, err := ur.db.Prepare("UPDATE users SET name= ?, email= ?, password= ?, role= ?, avatar= ? WHERE id = ? and deleted_at is NULL")
 	if err != nil {
 		return errors.New("internal server error")
 	}
-	result, err := stmt.Exec(user.Name, user.Email, user.Password, user.Avatar, id)
+	result, err := stmt.Exec(user.Name, user.Email, user.Password, user.Role, user.Avatar, id)
 	if err != nil {
 		return errors.New("internal server error")
 	}
