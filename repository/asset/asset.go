@@ -23,7 +23,7 @@ func (ar *AssetRepository) Create(asset entities.Asset)(entities.Asset,int,error
 		return asset,0, errors.New("internal server error")
 	}
 
-	res, errr := stmt.Exec(asset.Name, asset.Description, asset.Category.Id, asset.Quantity, asset.Picture)
+	res, errr := stmt.Exec(asset.Name, asset.Description, asset.CategoryId, asset.Quantity, asset.Picture)
 	if errr != nil {
 		log.Println(errr)
 		return asset,0, errors.New("internal server error")
@@ -68,7 +68,7 @@ func (ar *AssetRepository) GetById(id int)(entities.Asset,error){
 		return asset, errors.New("internal server error")
 	}
 
-	errScan := res.Scan(&asset.Id, &asset.Name, &asset.Description, &asset.Category.Id, &asset.Category.Name, &asset.Quantity, &asset.Picture, &asset.CreatedAt)
+	errScan := res.Scan(&asset.Id, &asset.Name, &asset.Description, &asset.CategoryId, &asset.CategoryName, &asset.Quantity, &asset.Picture, &asset.CreatedAt)
 	if errScan != nil {
 		return asset, errScan
 	}
@@ -142,7 +142,7 @@ func (ar *AssetRepository) GetAll(page int, category int)([]entities.Asset,int,e
 
 	for result.Next() {
 		var asset entities.Asset
-		err := result.Scan(&asset.Id, &asset.Name, &asset.Description, &asset.Category.Id, &asset.Category.Name, &asset.Quantity, &asset.Picture, &asset.CreatedAt)
+		err := result.Scan(&asset.Id, &asset.Name, &asset.Description, &asset.CategoryId, &asset.CategoryName, &asset.Quantity, &asset.Picture, &asset.CreatedAt)
 		if err!= nil {
 			return assets,totalAsset, err
 		}
