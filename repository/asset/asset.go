@@ -117,22 +117,20 @@ func (ar *AssetRepository) GetAll(page int, category int)([]entities.Asset,int,e
 	offset := (page - 1) * limit
 
 	if category == 0 && page == 0 {
-		result, err = ar.db.Query(`select count(a.id),a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat from assets as a 
-			inner join categories as c on a.categoryid = c.id GROUP BY a.id`)
+		result, err = ar.db.Query(`select a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat from assets as a 
+			inner join categories as c on a.categoryid = c.id`)
 	}else if page != 0 && category == 0{
-		result, err = ar.db.Query(`select count(a.id),a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat from assets as a 
-			inner join categories as c on a.categoryid = c.id GROUP BY a.id limit ? offset?` ,limit, offset)
+		result, err = ar.db.Query(`select a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat from assets as a 
+			inner join categories as c on a.categoryid = c.id limit ? offset?` ,limit, offset)
 	}else if category != 0 && page == 0{
-		result, err = ar.db.Query(`select count(a.id),a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat from assets as a 
+		result, err = ar.db.Query(`select a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat from assets as a 
 			inner join categories as c on a.categoryid = c.id 
-			where a.categoryid= ?
-			GROUP BY a.id`, category)
+			where a.categoryid= ?`, category)
 	} else if category != 0 && page != 0 {
 		result, err = ar.db.Query(
-			`select count(a.id),a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat from assets as a 
+			`select a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat from assets as a 
 			inner join categories as c on a.categoryid = c.id 
-			where a.categoryid= ? 
-			GROUP BY a.id
+			where a.categoryid= ?
 			limit ? offset?`, category, limit, offset)
 	}
 	if err != nil {
@@ -144,30 +142,30 @@ func (ar *AssetRepository) GetAll(page int, category int)([]entities.Asset,int,e
 
 	for result.Next() {
 		var asset entities.Asset
-		err := result.Scan(&totalAsset, &asset.Id, &asset.Name, &asset.Description, &asset.Category.Id, &asset.Category.Name, &asset.Quantity, &asset.Picture, &asset.CreatedAt)
+		err := result.Scan(&asset.Id, &asset.Name, &asset.Description, &asset.Category.Id, &asset.Category.Name, &asset.Quantity, &asset.Picture, &asset.CreatedAt)
 		if err!= nil {
 			return assets,totalAsset, err
 		}
 		assets = append(assets, asset)
 	}
-	// var totalAssetQuery *sql.Rows
-	// if category == 0 {
-	// 	totalAssetQuery, err = ar.db.Query(`select count(id) from assets`)
-	// }else {
-	// 	totalAssetQuery, err = ar.db.Query(`select count(id) from assets where categoryid= ?`, category)
-	// }
-	// if err != nil {
-	// 	fmt.Println("Get 2", err)
-	// 	return assets,totalAsset, err
-	// }
+	var totalAssetQuery *sql.Rows
+	if category == 0 {
+		totalAssetQuery, err = ar.db.Query(`select count(id) from assets`)
+	}else {
+		totalAssetQuery, err = ar.db.Query(`select count(id) from assets where categoryid= ?`, category)
+	}
+	if err != nil {
+		fmt.Println("Get 2", err)
+		return assets,totalAsset, err
+	}
 
-	// defer totalAssetQuery.Close()
+	defer totalAssetQuery.Close()
 	
-	// for totalAssetQuery.Next() {
-	// 	err := totalAssetQuery.Scan(&totalAsset)
-	// 	if err != nil {
-	// 		return assets,totalAsset, err
-	// 	}
-	// }
+	for totalAssetQuery.Next() {
+		err := totalAssetQuery.Scan(&totalAsset)
+		if err != nil {
+			return assets,totalAsset, err
+		}
+	}
 	return assets, totalAsset, nil
 }
