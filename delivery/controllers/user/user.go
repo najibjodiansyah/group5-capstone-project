@@ -25,8 +25,8 @@ type UserController struct {
 	repository userRepo.User
 }
 
-func New(user userRepo.User) *UserController {
-	return &UserController{repository: user}
+func New(repository userRepo.User) *UserController {
+	return &UserController{repository: repository}
 }
 
 func (uc UserController) Register() echo.HandlerFunc {
@@ -42,6 +42,7 @@ func (uc UserController) Register() echo.HandlerFunc {
 		user := entities.User{}
 		user.Name = input.Name
 		user.Email = input.Email
+		user.Role = input.Role
 		user.Avatar = "https://d11a6trkgmumsb.cloudfront.net/original/3X/d/8/d8b5d0a738295345ebd8934b859fa1fca1c8c6ad.jpeg"
 
 		hashedPassword, errEncrypt := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
@@ -68,13 +69,12 @@ func (uc UserController) GetById() echo.HandlerFunc {
 		}
 
 		userId, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert id"))
+		}
 
 		if userId != id {
 			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
-		}
-
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert id"))
 		}
 
 		user, err := uc.repository.GetById(userId)
@@ -87,6 +87,7 @@ func (uc UserController) GetById() echo.HandlerFunc {
 		responseUser.Name = user.Name
 		responseUser.Email = user.Email
 		responseUser.Avatar = user.Avatar
+		responseUser.Role = user.Role
 		responseUser.CreatedAt = user.CreatedAt
 
 		return c.JSON(http.StatusOK, response.SuccessOperation("success", "success get user", responseUser))
@@ -95,7 +96,7 @@ func (uc UserController) GetById() echo.HandlerFunc {
 
 func (uc UserController) Update() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		id, _, err := middlewares.ExtractToken(c)
+		id, role, err := middlewares.ExtractToken(c)
 		if err != nil {
 			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
 		}
@@ -114,6 +115,8 @@ func (uc UserController) Update() echo.HandlerFunc {
 		if userid != id {
 			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
 		}
+
+		fmt.Println(role)
 
 		hashedPassword, errEncrypt := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 		if errEncrypt != nil {
@@ -135,8 +138,12 @@ func (uc UserController) Update() echo.HandlerFunc {
 		if user.Password != "" {
 			updateUser.Password = user.Password
 		}
+		if user.Role != "" {
+			updateUser.Role = user.Role
+		}
 		src, file, err := c.Request().FormFile("avatar")
 		if err != nil {
+			fmt.Println(err)
 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to upload avatar"))
 		}
 		ext := strings.Split(file.Filename, ".")
@@ -179,7 +186,7 @@ func (uc UserController) Update() echo.HandlerFunc {
 
 func (uc UserController) Delete() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		id, _, err := middlewares.ExtractToken(c)
+		id, role, err := middlewares.ExtractToken(c)
 		if err != nil {
 			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
 		}
@@ -192,6 +199,8 @@ func (uc UserController) Delete() echo.HandlerFunc {
 		if userId != id {
 			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
 		}
+		
+		fmt.Println(role)
 
 		// delete user based on id from database
 		errDelete := uc.repository.Delete(userId)

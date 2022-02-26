@@ -8,6 +8,7 @@ type User struct {
 	Email     string `json:"email" form:"email"`
 	Password  string `json:"password" form:"password"`
 	Avatar    string `json:"avatar" form:"avatar"`
-	CreatedAt time.Time
-	DeletedAt time.Time
+	Role	  string `json:"role" form:"role"`
+	CreatedAt time.Time	`json:"created at" form:"created at"`
+	DeletedAt time.Time	`json:"deleted at" form:"deleted at"`
 }

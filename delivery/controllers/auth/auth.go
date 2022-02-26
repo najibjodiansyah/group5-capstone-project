@@ -46,19 +46,19 @@ func (ac AuthController) Login() echo.HandlerFunc {
 		return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("failed", "Password does not match"))
 	}
 
-	token, err := middlewares.CreateToken(loginData.ID,loginData.Name)
+	token, err := middlewares.CreateToken(loginData.ID,loginData.Role)
 
 	// detect failure in creating token
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, response.InternalServerError("failed", err.Error()))
 	}
 
-	var response LoginResponseFormat
-	response.Id = loginData.ID
-	response.Name = loginData.Name
-	response.Token = token
+	var responseFormat LoginResponseFormat
+	responseFormat.Id = loginData.ID
+	responseFormat.Name = loginData.Name
+	responseFormat.Token = token
+	responseFormat.Role = loginData.Role
 
-
-	return c.JSON(http.StatusOK, response)
+	return c.JSON(http.StatusOK, response.SuccessOperation("success", "success login", responseFormat))
 }
 }
