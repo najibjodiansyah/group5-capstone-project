@@ -12,3 +12,8 @@ type User struct {
 	CreatedAt time.Time	`json:"created at" form:"created at"`
 	DeletedAt time.Time	`json:"deleted at" form:"deleted at"`
 }
+
+type Employee struct {
+	ID        int    `json:"id" form:"id"`
+	Name      string `json:"name" form:"name"`
+}

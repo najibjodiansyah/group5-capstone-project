@@ -7,4 +7,5 @@ type User interface{
 	GetById(id int)(entities.User, error)
 	Update(id int, user entities.User) error
 	Delete(id int) error
+	GetEmployees()([]entities.Employee,error)
 }
