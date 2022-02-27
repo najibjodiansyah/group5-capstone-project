@@ -34,4 +34,5 @@ func RegisterPath(
 	api.GET("/items", itemController.Get())
 	api.GET("/items/:id", itemController.GetById())
 	api.PUT("/items/:id", itemController.Update())
+	api.GET("/items/:id/usage", itemController.GetItemUsageHistory())
 }

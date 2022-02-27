@@ -36,7 +36,7 @@ func (r *ItemRepository) Get(availableStatus string, category int, keyword strin
 		join assets a ON i.assetid = a.id
 		join categories c ON a.categoryid = c.id where upper(i.name) like '%v' limit %v offset %v`, kw, limit, offset)
 		result, err = r.db.Query(query)
-	} else {
+	} else if page != 0 {
 		result, err = r.db.Query(`select i.id, i.name, a.categoryid, c.name, a.picture, i.availablestatus from items i
 		join assets a ON i.assetid = a.id
 		join categories c ON a.categoryid = c.id limit ? offset ?`, limit, offset)
@@ -45,6 +45,7 @@ func (r *ItemRepository) Get(availableStatus string, category int, keyword strin
 	// join assets a ON i.assetid = a.id
 	// join categories c ON a.categoryid = c.id`)
 	if err != nil {
+		fmt.Println("1", err)
 		log.Fatal(err)
 	}
 
@@ -56,6 +57,7 @@ func (r *ItemRepository) Get(availableStatus string, category int, keyword strin
 		var item entities.ItemResponseFormat
 		err := result.Scan(&item.ID, &item.Name, &item.CategoryId, &item.Category, &item.Picture, &item.AvailableStatus)
 		if err != nil {
+			fmt.Println("2", err)
 			log.Fatal("error di scan get item")
 		}
 		items = append(items, item)
@@ -84,6 +86,7 @@ func (r *ItemRepository) Get(availableStatus string, category int, keyword strin
 	for totalItemQuery.Next() {
 		err := totalItemQuery.Scan(&totalItem)
 		if err != nil {
+			fmt.Println("3", err)
 			return items, totalItem, err
 		}
 	}
@@ -159,4 +162,81 @@ func (r *ItemRepository) Update(id int, item entities.Item) error {
 		return errors.New("internal server error")
 	}
 	return nil
+}
+
+func (r *ItemRepository) GetItemUsageHistory(id int) (entities.ItemUsageHistory, error) {
+	var itemHistory entities.ItemUsageHistory
+	// stmt, err := r.db.Prepare(`select i.id, i.name, a.categoryid, c.name, a.picture from items i
+	// join assets a ON i.assetid = a.id
+	// join categories c ON a.categoryid = c.id where i.id=?`)
+	// if err != nil {
+	// 	//log.Fatal(err)
+	// 	return itemHistory, fmt.Errorf("gagal prepare db")
+	// }
+
+	// result, err := stmt.Query(id)
+	// if err != nil {
+	// 	return itemHistory, fmt.Errorf("gagal query itemHistory")
+	// }
+	result, err := r.db.Query(`select i.id, i.name, a.categoryid, c.name, a.picture from items i
+	join assets a ON i.assetid = a.id
+	join categories c ON a.categoryid = c.id where i.id=?`, id)
+	if err != nil {
+		fmt.Println("1", err)
+		log.Fatal(err)
+	}
+
+	defer result.Close()
+
+	if isExist := result.Next(); !isExist {
+		return itemHistory, fmt.Errorf("item not found")
+	}
+	err = result.Scan(&itemHistory.ID, &itemHistory.Name, &itemHistory.CategoryId, &itemHistory.Category, &itemHistory.Picture)
+	if err != nil {
+		return itemHistory, err
+	}
+
+	// for result.Next() {
+	// 	err := result.Scan(&itemHistory.ID, &itemHistory.Name, &itemHistory.CategoryId, &itemHistory.Category, &itemHistory.Picture)
+	// 	if err != nil {
+	// 		return itemHistory, err
+	// 	}
+	// }
+
+	statusDigunakan := "digunakan"
+	statusDkembalikan := "dikembalikan"
+	res, err := r.db.Query(`select u.name, updatedAt, status from applications a
+	join users u on a.employeeid=u.id where a.itemid=? and (a.status =? or a.status=?)`, id, statusDigunakan, statusDkembalikan)
+
+	if err != nil {
+		fmt.Println("1", err)
+		log.Fatal(err)
+	}
+
+	// stmt, err = r.db.Prepare(`select u.name, updatedAt, status from applications a
+	// join users u on a.employeeid=u.id where a.itemid=? and a.status =? or a.status=?`)
+	// if err != nil {
+	// 	//log.Fatal(err)
+	// 	return itemHistory, fmt.Errorf("gagal prepare db")
+	// }
+	// result, err = stmt.Query(id, statusDigunakan, statusDkembalikan)
+	// if err != nil {
+	// 	return itemHistory, fmt.Errorf("gagal query item History")
+	// }
+	defer res.Close()
+
+	var users []entities.ItemUser
+
+	for res.Next() {
+		var user entities.ItemUser
+		err := res.Scan(&user.AssetUser, &user.LendingDate, &user.UsageStatus)
+		if err != nil {
+			fmt.Println("2", err)
+			log.Fatal("error di scan get item History")
+		}
+		users = append(users, user)
+	}
+	itemHistory.Users = users
+
+	return itemHistory, nil
 }

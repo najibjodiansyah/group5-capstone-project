@@ -38,7 +38,7 @@ func (ic ItemController) Get() echo.HandlerFunc {
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert category_id"))
 		}
-		page, err := strconv.Atoi(category)
+		page, err := strconv.Atoi(pageInput)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert page"))
 		}
@@ -100,5 +100,22 @@ func (ic ItemController) Update() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to fetch data"))
 		}
 		return c.JSON(http.StatusOK, response.SuccessOperationDefault("success", "success Update item"))
+	}
+}
+
+func (ic ItemController) GetItemUsageHistory() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		itemId, err := strconv.Atoi(c.Param("id"))
+
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert id"))
+		}
+
+		item, err := ic.repository.GetItemUsageHistory(itemId)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to fetch data"))
+		}
+
+		return c.JSON(http.StatusOK, response.SuccessOperation("success", "success get item", item))
 	}
 }

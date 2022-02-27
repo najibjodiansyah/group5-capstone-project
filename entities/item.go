@@ -11,13 +11,28 @@ type Item struct {
 type ItemResponseFormat struct {
 	ID              int    `json:"id" form:"id"`
 	CategoryId      int    `json:"categoryId" form:"categoryId"`
-	Category        int    `json:"category" form:"category"`
+	Category        string `json:"category" form:"category"`
 	Name            string `json:"name" form:"name"`
-	Picture         int    `json:"picture" form:"picture"`
+	Picture         string `json:"picture" form:"picture"`
 	AvailableStatus string `json:"availableStatus" form:"availableStatus"`
 }
 
 type ItemResponseTotal struct {
-	TotalPage int `json:"totalItem" form:"totalItem"`
-	Items     []ItemResponseFormat
+	TotalPage int                  `json:"totalPage" form:"totalPage"`
+	Items     []ItemResponseFormat `json:"items" form:"items"`
+}
+
+type ItemUsageHistory struct {
+	ID         int        `json:"id" form:"id"`
+	Name       string     `json:"name" form:"name"`
+	CategoryId int        `json:"categoryId" form:"categoryId"`
+	Category   string     `json:"category" form:"category"`
+	Picture    string     `json:"picture" form:"picture"`
+	Users      []ItemUser `json:"users" form:"users"`
+}
+
+type ItemUser struct {
+	AssetUser   string `json:"assetUser" form:"assetUser"`
+	LendingDate string `json:"lendingDate" form:"lendingDate"`
+	UsageStatus string `json:"usageStatus" form:"usageStatus"`
 }
