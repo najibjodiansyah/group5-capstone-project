@@ -19,5 +19,4 @@ jobs:
         script: |
           cd group5-capstone-project
           git pull origin main
-          go test -v ./..
           docker-compose down && docker-compose up --build -d
