@@ -2,17 +2,19 @@ package application
 
 import (
 	"capstone-project/entities"
-	"time"
 )
 
 type Application interface {
 	Create(entities.Applications)(int, entities.Applications,error)
-	UpdateStatus(applicationid int)(entities.Applications,error)
-	Get(status string,
+	UpdateStatus(applicationid int, status string, managerid int, itemid int)(error)
+	AvailabilityItem(assetid int) (int, error)
+	UpdateItem(itemid int, availStatus string, employeeid int) error
+	GetAll(status string,
 		category int,
-		date time.Time,
-		orderbydate time.Time,
-		longestdate time.Time,
-		page int)(entities.Applications, error)
-	GetUserStatus(userid int, status string)(entities.Applications,error)
+		date string,
+		orderbydate string,
+		longestdate string,
+		page int)([]entities.Applications,int, error)
+	GetById(id int)(entities.ResponseApplication,error)
+	GetAsset(applicationid int)(int,error)
 }

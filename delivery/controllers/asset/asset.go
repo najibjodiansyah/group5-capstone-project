@@ -41,7 +41,7 @@ func (ac AssetController)Create()echo.HandlerFunc {
 		asset := entities.Asset{}
 		asset.Name = input.Name
 		asset.Description = input.Description
-		asset.CategoryId = input.Category
+		asset.CategoryId = input.Categoryid
 		asset.Quantity = input.Quantity
 		src, file, err := c.Request().FormFile("picture")
 		if err != nil {
@@ -112,7 +112,7 @@ func (ac AssetController)GetById()echo.HandlerFunc{
 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to fetch data by id"))
 		}
 		
-		var Responseasset ResponeAssetFormat
+		var Responseasset ResponseAssetFormat
 		Responseasset.Id = asset.Id
 		Responseasset.Name = asset.Name
 		Responseasset.Description = asset.Description
@@ -121,6 +121,18 @@ func (ac AssetController)GetById()echo.HandlerFunc{
 		Responseasset.Quantity = asset.Quantity
 		Responseasset.Picture = asset.Picture
 		Responseasset.CreatedAt = asset.CreatedAt
+
+		total, err := ac.repository.GetCountAssetUsed(asset.Id)
+			if err != nil {
+				return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to fetch data"))
+			}
+			
+			if total == 0 || total < asset.Quantity {
+				Responseasset.Availability = "tersedia"
+			}else {
+				Responseasset.Availability = "tidak tersedia"
+			}
+			
 		
 		return c.JSON(http.StatusOK, response.SuccessOperation("success", "success get asset by id",Responseasset))
 	}
@@ -129,9 +141,10 @@ func (ac AssetController)GetById()echo.HandlerFunc{
 func (ac AssetController)GetAll()echo.HandlerFunc{
 	return func(c echo.Context) error {
 
-		var category,pagination string
+		var category,pagination,status string
 		category = c.QueryParam("category")
 		pagination = c.QueryParam("page")
+		status = c.QueryParam("status") // "tersedia" & "tidaktersedia"
 		if category == "" {
 			category = "0"
 		}
@@ -154,12 +167,46 @@ func (ac AssetController)GetAll()echo.HandlerFunc{
 			fmt.Println(err)
 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to fetch data"))
 		}
-		limit := 5
+		limit := 10
 		totalPage := int(math.Ceil(float64(totalAsset) / float64(limit)))
+
+		var assetResp []ResponseAssetFormat
+		for _, asset := range assets {
+			var Responseasset ResponseAssetFormat
+			total, err := ac.repository.GetCountAssetUsed(asset.Id)
+			if err != nil {
+				return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to fetch data"))
+			}
+			
+			if total == 0 || total < asset.Quantity {
+				Responseasset.Availability = "tersedia"
+			}else {
+				Responseasset.Availability = "tidak tersedia"
+			}
+			
+			Responseasset.Id = asset.Id
+			Responseasset.Name = asset.Name
+			Responseasset.Description = asset.Description
+			Responseasset.Categoryid = asset.CategoryId
+			Responseasset.Category = asset.CategoryName
+			Responseasset.Quantity = asset.Quantity
+			Responseasset.Picture = asset.Picture
+			Responseasset.CreatedAt = asset.CreatedAt
+			if status != "" && status == "tersedia" {
+				if Responseasset.Availability == "tidak tersedia" {
+					continue
+				}
+			} else if status == "tidaktersedia" && status != "" {
+				if Responseasset.Availability == "tersedia" {
+					continue
+				}
+			}
+			assetResp = append(assetResp, Responseasset)
+		}
 
 		var responseData responseAll
 		responseData.Totalpage = totalPage
-		responseData.Assets = assets
+		responseData.Assets = assetResp
 
 		return c.JSON(http.StatusOK, response.SuccessOperation("success", "success get all asset", responseData))
 	}

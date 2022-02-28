@@ -11,10 +11,8 @@ import (
 	_assetRepo "capstone-project/repository/asset"
 	_authRepo "capstone-project/repository/auth"
 	_userRepo "capstone-project/repository/user"
-	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
@@ -51,10 +49,6 @@ func main() {
 
 	e.Pre(middleware.RemoveTrailingSlash(), middleware.CORS())
 	routes.RegisterPath(e, userController, authController, assetController, appController)
-
-
-	fmt.Println(time.Parse("2006-01-02", "2025-01-01"))
-	fmt.Println(time.Now().Add(time.Hour * (24*365)))
 
 	// start the server, and log if it fails
 	e.Logger.Fatal(e.Start(":8080"))
