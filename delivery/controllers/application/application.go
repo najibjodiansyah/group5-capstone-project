@@ -283,7 +283,7 @@ func (ac ApplicationController) GetAll() echo.HandlerFunc{
 			fmt.Println(err)
 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to fetch data"))
 		}
-		
+
 		limit := 10
 		totalPage := int(math.Ceil(float64(totalAsset) / float64(limit)))
 
@@ -295,6 +295,35 @@ func (ac ApplicationController) GetAll() echo.HandlerFunc{
 	}
 }
 
-// UsersApplicationHistory
+func (ac ApplicationController) UsersApplicationActivity() echo.HandlerFunc{
+	return func(c echo.Context) error {
+		userid, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert id"))
+		}
 
-// UsersApplicationActivity
+		apps, err := ac.repository.UsersApplicationActivity(userid)
+		if err != nil{
+			fmt.Println(err)
+			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to fetch data by id"))
+		}
+
+		return c.JSON(http.StatusOK, response.SuccessOperation("success", "success get asset by id",apps))
+	}
+}
+func (ac ApplicationController) UsersApplicationHistory() echo.HandlerFunc{
+	return func(c echo.Context) error {
+		userid, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert id"))
+		}
+
+		apps, err := ac.repository.UsersApplicationHistory(userid)
+		if err != nil{
+			fmt.Println(err)
+			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to fetch data by id"))
+		}
+
+		return c.JSON(http.StatusOK, response.SuccessOperation("success", "success get asset by id",apps))
+	}
+}

@@ -38,4 +38,6 @@ func RegisterPath(
 	api.PUT("/applications/:id", appController.UpdateStatus(),middlewares.JWTMiddleware())
 	api.GET("/applications/:id", appController.GetById())
 	api.GET("/applications", appController.GetAll())
+	api.GET("/users/:id/applications/activity", appController.UsersApplicationActivity())
+	api.GET("/users/:id/applications/history", appController.UsersApplicationHistory())
 }

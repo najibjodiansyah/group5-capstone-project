@@ -17,4 +17,6 @@ type Application interface {
 		page int)([]entities.Applications,int, error)
 	GetById(id int)(entities.ResponseApplication,error)
 	GetAsset(applicationid int)(int,error)
+	UsersApplicationHistory(userid int)(entities.ResponseUserApplication,error)
+	UsersApplicationActivity(userid int)(entities.ResponseUserApplication,error)
 }

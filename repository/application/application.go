@@ -321,3 +321,66 @@ func (ar *ApplicationRepository)GetAll(status string,category int,date string,or
 
 	return apps, totalApp, nil
 }
+
+func (ar *ApplicationRepository)UsersApplicationHistory(userid int)(entities.ResponseUserApplication,error){
+	var app entities.ResponseUserApplication
+	stmt, err := ar.db.Prepare(`select ap.id,ap.employeeid, ap.managerid, ap.assetid, ap.itemid, ap.requestdate, ap.returndate, ap.spesification, ap.description, ap.status, ap.updatedat, u.name, ass.name, ass.picture, c.name
+	FROM applications ap
+	JOIN assets as ass ON ap.assetid = ass.id
+	JOIN users as u ON ap.employeeid = u.id
+	JOIN categories as c ON ass.categoryid = c.id
+	where ap.employeeid = ? and ap.status = ?`)
+	if err != nil {
+		log.Println(err)
+		return app, errors.New("internal server error")
+	}
+
+	res, err := stmt.Query(userid, "donereturn")
+	if err != nil {
+		log.Println(err)
+		return app, errors.New("internal server error")
+	}
+
+	if isExist := res.Next(); !isExist {
+		return app, errors.New("internal server error")
+	}
+
+	errScan := res.Scan(&app.Id, &app.Employeeid, &app.Managerid, &app.Assetid, &app.Itemid, &app.Requestdate, &app.Returndate, &app.Specification, &app.Description, &app.Status, &app.Updatedat, &app.Employeename, &app.Assetname, &app.Photo, &app.Categoryname)
+	if errScan != nil {
+		return app, errScan
+	}
+
+	return app, nil
+}
+
+func (ar *ApplicationRepository)UsersApplicationActivity(userid int)(entities.ResponseUserApplication,error){
+	var app entities.ResponseUserApplication
+	stmt, err := ar.db.Prepare(`select ap.id,ap.employeeid, ap.managerid, ap.assetid, ap.itemid, ap.requestdate, ap.returndate, ap.spesification, ap.description, ap.status, ap.updatedat, u.name, ass.name, ass.picture, c.name
+	FROM applications ap
+	JOIN assets as ass ON ap.assetid = ass.id
+	JOIN users as u ON ap.employeeid = u.id
+	JOIN categories as c ON ass.categoryid = c.id
+	where ap.employeeid = ? and not ap.status = ?
+	`)
+	if err != nil {
+		log.Println(err)
+		return app, errors.New("internal server error")
+	}
+
+	res, err := stmt.Query(userid, "donereturn")
+	if err != nil {
+		log.Println(err)
+		return app, errors.New("internal server error")
+	}
+
+	if isExist := res.Next(); !isExist {
+		return app, errors.New("internal server error")
+	}
+
+	errScan := res.Scan(&app.Id, &app.Employeeid, &app.Managerid, &app.Assetid, &app.Itemid, &app.Requestdate, &app.Returndate, &app.Specification, &app.Description, &app.Status, &app.Updatedat, &app.Employeename, &app.Assetname, &app.Photo, &app.Categoryname)
+	if errScan != nil {
+		return app, errScan
+	}
+
+	return app, nil
+}

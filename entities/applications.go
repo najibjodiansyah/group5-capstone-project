@@ -35,3 +35,21 @@ type ResponseApplication struct {
 	Status			string		`json:"status"`
 	Updatedat		string		`json:"updateat"`
 }
+
+type ResponseUserApplication struct {
+	Id				int			`json:"id"`
+	Employeeid		int			`json:"employeeid"`
+	Employeename	string		`json:"employeename"`
+	Managerid		int			`json:"managerid"`
+	Assetid			int			`json:"assetid"`
+	Assetname		string		`json:"assetname"`
+	Itemid			int			`json:"itemid"`
+	Categoryname	string		`json:"categoryname"`
+	Photo			string		`json:"photo"`
+	Requestdate		time.Time	`json:"requestdate"`
+	Returndate		time.Time	`json:"returndate"`
+	Specification	string		`json:"specification"`
+	Description		string		`json:"description"`
+	Status			string		`json:"status"`
+	Updatedat		string		`json:"updateat"`
+}
