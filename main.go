@@ -5,11 +5,13 @@ import (
 	"capstone-project/delivery/controllers/application"
 	_assetController "capstone-project/delivery/controllers/asset"
 	_authController "capstone-project/delivery/controllers/auth"
+	_itemController "capstone-project/delivery/controllers/item"
 	_userController "capstone-project/delivery/controllers/user"
 	"capstone-project/delivery/routes"
 	_appRepo "capstone-project/repository/application"
 	_assetRepo "capstone-project/repository/asset"
 	_authRepo "capstone-project/repository/auth"
+	_itemRepo "capstone-project/repository/item"
 	_userRepo "capstone-project/repository/user"
 	"log"
 	"os"
@@ -35,12 +37,14 @@ func main() {
 	// initialize model
 	userRepo := _userRepo.New(db)
 	authRepo := _authRepo.New(db)
+	itemRepo := _itemRepo.New(db)
 	assetRepo := _assetRepo.New(db)
 	appRepo := _appRepo.NewApplication(db)
 
 	// initialize controller
 	userController := _userController.New(userRepo)
 	authController := _authController.New(authRepo)
+	itemController := _itemController.New(itemRepo)
 	assetController := _assetController.New(assetRepo)
 	appController := application.New(appRepo)
 
@@ -48,7 +52,7 @@ func main() {
 	e := echo.New()
 
 	e.Pre(middleware.RemoveTrailingSlash(), middleware.CORS())
-	routes.RegisterPath(e, userController, authController, assetController, appController)
+	routes.RegisterPath(e, userController, authController, assetController, itemController, appController)
 
 	// start the server, and log if it fails
 	e.Logger.Fatal(e.Start(":8080"))
