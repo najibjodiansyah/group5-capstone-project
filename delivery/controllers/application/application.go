@@ -106,7 +106,7 @@ func (ac ApplicationController) UpdateStatus() echo.HandlerFunc {
 				return c.JSON(http.StatusBadRequest,response.BadRequest("Bad Request", "Unauthorized Role"))
 			}
 
-			if err := ac.repository.UpdateStatus(appid,input.Status,0,0); err != nil {
+			if err := ac.repository.UpdateStatus(appid,input.Status,nil,nil); err != nil {
 				return c.JSON(http.StatusBadRequest, response.BadRequest("failed", err.Error()))
 			}
 
@@ -119,20 +119,22 @@ func (ac ApplicationController) UpdateStatus() echo.HandlerFunc {
 				return c.JSON(http.StatusBadRequest,response.BadRequest("Bad Request", "Unauthorized Role"))
 			}
 
-			if err := ac.repository.UpdateStatus(appid,input.Status,userid,0); err != nil {
+			var managerid *int = &userid
+
+			if err := ac.repository.UpdateStatus(appid,input.Status,managerid,nil); err != nil {
 				return c.JSON(http.StatusBadRequest, response.BadRequest("failed", err.Error()))
 			}
 
 			return c.JSON(http.StatusOK, response.SuccessOperationDefault("success", "success update status 'accept' by manager"))
 		}else if input.Status == "decline" {
 			if role == "manager"{
-				if err := ac.repository.UpdateStatus(appid,input.Status,userid,0); err != nil {
+				if err := ac.repository.UpdateStatus(appid,input.Status,&userid,nil); err != nil {
 					return c.JSON(http.StatusBadRequest, response.BadRequest("failed", err.Error()))
 				}
 
 				return c.JSON(http.StatusOK, response.SuccessOperationDefault("success", "success update status 'decline' by manager"))
 			}else if role == "admin"{
-				if err := ac.repository.UpdateStatus(appid,input.Status,0,0); err != nil {
+				if err := ac.repository.UpdateStatus(appid,input.Status,nil,nil); err != nil {
 					return c.JSON(http.StatusBadRequest, response.BadRequest("failed", err.Error()))
 				}
 
@@ -165,7 +167,7 @@ func (ac ApplicationController) UpdateStatus() echo.HandlerFunc {
 			}
 			
 			// update status di application 
-			if err := ac.repository.UpdateStatus(appid,input.Status,0,availitemid); err != nil {
+			if err := ac.repository.UpdateStatus(appid,input.Status,nil,&availitemid); err != nil {
 				return c.JSON(http.StatusBadRequest, response.BadRequest("failed", err.Error()))
 			}
 
@@ -180,7 +182,7 @@ func (ac ApplicationController) UpdateStatus() echo.HandlerFunc {
 
 			// panggil method untuk ngubah itemstatus
 		
-			if err := ac.repository.UpdateItem(availitemid,availstatus,app.Employeeid); err != nil {
+			if err := ac.repository.UpdateItem(&availitemid,availstatus,app.Employeeid); err != nil {
 				return c.JSON(http.StatusBadRequest, response.BadRequest("failed", err.Error()))
 			}
 
@@ -190,7 +192,7 @@ func (ac ApplicationController) UpdateStatus() echo.HandlerFunc {
 			// harusnya bisa admin, bisa juga employee
 			// disini bikin status untuk dikembalikan
 			if role != "manager"{
-				if err := ac.repository.UpdateStatus(appid, input.Status, 0, 0); err != nil {
+				if err := ac.repository.UpdateStatus(appid, input.Status, nil, nil); err != nil {
 					return c.JSON(http.StatusBadRequest, response.BadRequest("failed", err.Error()))
 				}
 
@@ -208,7 +210,7 @@ func (ac ApplicationController) UpdateStatus() echo.HandlerFunc {
 			}
 
 			// update status di application jadi done return
-			if err := ac.repository.UpdateStatus(appid, input.Status, 0, 0); err != nil {
+			if err := ac.repository.UpdateStatus(appid, input.Status, nil, nil); err != nil {
 				return c.JSON(http.StatusBadRequest, response.BadRequest("failed", err.Error()))
 			}
 
@@ -254,31 +256,31 @@ func (ac ApplicationController) GetById()echo.HandlerFunc{
 // GetAll
 func (ac ApplicationController) GetAll() echo.HandlerFunc{
 	return func(c echo.Context)error {
-		var status,category,date,orderbydate,longestdate,pagination string
+		var status,category,date,orderbydate,longestdate string
 		status = c.QueryParam("status")
 		category = c.QueryParam("category")
 		date = c.QueryParam("date")
 		orderbydate = c.QueryParam("orderbydate")
 		longestdate = c.QueryParam("longestdate")
-		pagination = c.QueryParam("page")
+		// pagination = c.QueryParam("page")
 
 		if category == "" {
 			category = "0"
 		}
-		if pagination == "" {
-			pagination = "0"
-		}
+		// if pagination == "" {
+		// 	pagination = "0"
+		// }
 
 		categoryid, err := strconv.Atoi(category)
 			if err != nil {
 				return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert category_id"))
 			}
 
-		page, err := strconv.Atoi(pagination)
-			if err != nil {
-				return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert category_id"))
-			}
-		app,totalAsset, err := ac.repository.GetAll(status,categoryid,date,orderbydate,longestdate,page)
+		// page, err := strconv.Atoi(pagination)
+		// 	if err != nil {
+		// 		return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert category_id"))
+		// 	}
+		app,totalAsset, err := ac.repository.GetAll(status,categoryid,date,orderbydate,longestdate)
 		if err!= nil {
 			fmt.Println(err)
 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to fetch data"))

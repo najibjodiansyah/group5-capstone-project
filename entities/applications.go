@@ -21,29 +21,13 @@ type ResponseApplication struct {
 	Id				int			`json:"id"`
 	Employeeid		int			`json:"employeeid"`
 	Employeename	string		`json:"employeename"`
-	Managerid		int			`json:"managerid"`
-	Managername		string		`json:"managername"`
+	Managerid		*int		`json:"managerid"`
+	Managername		*string		`json:"managername"`
 	Assetid			int			`json:"assetid"`
 	Assetname		string		`json:"assetname"`
-	Itemid			int			`json:"itemid"`
-	ItemName		string		`json:"itemname"`
-	Photo			string		`json:"photo"`
-	Requestdate		time.Time	`json:"requestdate"`
-	Returndate		time.Time	`json:"returndate"`
-	Specification	string		`json:"specification"`
-	Description		string		`json:"description"`
-	Status			string		`json:"status"`
-	Updatedat		string		`json:"updateat"`
-}
-
-type ResponseUserApplication struct {
-	Id				int			`json:"id"`
-	Employeeid		int			`json:"employeeid"`
-	Employeename	string		`json:"employeename"`
-	Managerid		int			`json:"managerid"`
-	Assetid			int			`json:"assetid"`
-	Assetname		string		`json:"assetname"`
-	Itemid			int			`json:"itemid"`
+	Itemid			*int		`json:"itemid"`
+	ItemName		*string		`json:"itemname"`
+	Categoryid		int			`json:"categoryid"`
 	Categoryname	string		`json:"categoryname"`
 	Photo			string		`json:"photo"`
 	Requestdate		time.Time	`json:"requestdate"`
@@ -51,5 +35,5 @@ type ResponseUserApplication struct {
 	Specification	string		`json:"specification"`
 	Description		string		`json:"description"`
 	Status			string		`json:"status"`
-	Updatedat		string		`json:"updateat"`
+	Updatedat		string		`json:"updatedat"`
 }
