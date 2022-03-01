@@ -203,10 +203,10 @@ func (r *ItemRepository) GetItemUsageHistory(id int) (entities.ItemUsageHistory,
 	// 	}
 	// }
 
-	statusDigunakan := "digunakan"
-	statusDkembalikan := "dikembalikan"
+	inUse := "inuse"
+	doneReturn := "donereturn"
 	res, err := r.db.Query(`select u.name, requestDate, status from applications a
-	join users u on a.employeeid=u.id where a.itemid=? and (a.status =? or a.status=?)`, id, statusDigunakan, statusDkembalikan)
+	join users u on a.employeeid=u.id where a.itemid=? and (a.status =? or a.status=?)`, id, inUse, doneReturn)
 
 	if err != nil {
 		fmt.Println("1", err)
