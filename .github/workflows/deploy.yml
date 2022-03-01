@@ -8,14 +8,14 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-    - name: pull-test-deploy
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.KEY }}
-        port: ${{ secrets.PORT }}
-        script: |
-          cd group5-capstone-project
-          git pull origin main
-          docker-compose down && docker-compose up --build -d
+      - name: pull-test-deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd group5-capstone-project
+            git pull origin main
+            docker-compose down && docker-compose up --build -d

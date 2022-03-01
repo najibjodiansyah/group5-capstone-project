@@ -18,5 +18,5 @@ type Inputstatus struct {
 
 type responseAll struct{
 	Totalpage int				`json:"totalpage"`	
-	App []entities.Applications	`json:"applications"`
+	App []entities.ResponseApplication	`json:"applications"`
 }

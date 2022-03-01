@@ -19,15 +19,15 @@ func NewApplication(db *sql.DB) *ApplicationRepository{
 
 func (ar *ApplicationRepository)Create(app entities.Applications)(int,entities.Applications,error){
 
-	stmt, err := ar.db.Prepare(`insert into applications(employeeid, managerid, assetid, itemid, returnDate, spesification, description, status)
-	 							values(?,?,?,?,?,?,?,?)
+	stmt, err := ar.db.Prepare(`insert into applications(employeeid, assetid, returnDate, spesification, description, status)
+	 							values(?,?,?,?,?,?)
 								`)			
 	if err != nil {
 	log.Println(err)
 	return 0, app, errors.New("internal server error")
 	}
 
-	res, err := stmt.Exec(app.Employeeid, app.Managerid, app.AssetId, app.Itemid, app.Returndate, app.Specification, app.Description, app.Status)
+	res, err := stmt.Exec(app.Employeeid, app.AssetId, app.Returndate, app.Specification, app.Description, app.Status)
 	if err != nil {
 		log.Println(err)
 		return 0, app, errors.New("internal server error")
@@ -40,8 +40,8 @@ func (ar *ApplicationRepository)Create(app entities.Applications)(int,entities.A
 	return int(appid),entities.Applications{},nil
 }
 
-func (ar *ApplicationRepository)UpdateStatus(applicationid int, status string, managerid int,itemid int)(error){
-	if managerid != 0 {
+func (ar *ApplicationRepository)UpdateStatus(applicationid int, status string, managerid *int,itemid *int)(error){
+	if managerid != nil {
 		res, err := ar.db.Exec(`update applications set status =?, updatedat = ?, managerid = ? where id = ?`,status, time.Now(), managerid, applicationid)
 		if err != nil {
 			log.Println(err)
@@ -53,7 +53,7 @@ func (ar *ApplicationRepository)UpdateStatus(applicationid int, status string, m
 			return  errors.New("internal server error")
 		}
 		return nil
-	}else if itemid != 0{
+	}else if itemid != nil {
 		res, err := ar.db.Exec(`update applications set status =?, updatedat =?, itemid =? where id = ?`,status, time.Now(), itemid, applicationid)
 		if err != nil {
 			log.Println(err)
@@ -140,7 +140,7 @@ func (ar *ApplicationRepository)AvailabilityItem(assetid int)(int,error){
 	return Itemid, nil
 }
 
-func (ar *ApplicationRepository)UpdateItem(itemid int, availStatus string, employeeid int)error{
+func (ar *ApplicationRepository)UpdateItem(itemid *int, availStatus string, employeeid int)error{
 	// ubah availabilitystatus di item sesuai availstatus, where id =? dan employeeid =?
 	if employeeid == -1 {
 	stmt, err := ar.db.Prepare(`UPDATE items SET availableStatus=?, employee = NULL where id =?`)
@@ -149,7 +149,7 @@ func (ar *ApplicationRepository)UpdateItem(itemid int, availStatus string, emplo
 		return err
 	}
 
-	res, err := stmt.Exec(availStatus,itemid)
+	res, err := stmt.Exec(availStatus,&itemid)
 	if err != nil {
 		log.Print(err)
 		return err
@@ -170,7 +170,7 @@ func (ar *ApplicationRepository)UpdateItem(itemid int, availStatus string, emplo
 		return err
 	}
 
-	res, err := stmt.Exec(availStatus,employeeid,itemid)
+	res, err := stmt.Exec(availStatus,employeeid,&itemid)
 	if err != nil {
 		log.Print(err)
 		return err
@@ -188,12 +188,13 @@ func (ar *ApplicationRepository)UpdateItem(itemid int, availStatus string, emplo
 
 func (ar *ApplicationRepository)GetById(id int)(entities.ResponseApplication,error){
 	var app entities.ResponseApplication
-	stmt, err := ar.db.Prepare(`select ap.id,ap.employeeid, ap.managerid, ap.assetid, ap.itemid, ap.requestdate, ap.returndate, ap.spesification, ap.description, ap.status, ap.updatedat, u.name, a.name, ass.name, i.name, ass.picture
+	stmt, err := ar.db.Prepare(`select ap.id,ap.employeeid, ap.managerid, ap.assetid, ap.itemid, ap.requestdate, ap.returndate, ap.spesification, ap.description, ap.status, ap.updatedat, u.name, a.name, ass.name, i.name, ass.picture, ass.categoryid, c.name
 	FROM applications ap
 	JOIN assets as ass ON ap.assetid = ass.id
 	JOIN users as u ON ap.employeeid = u.id
-	JOIN items as i ON ap.itemid = i.id
-	JOIN users as a ON ap.managerid = a.id
+	LEFT JOIN items as i ON ap.itemid = i.id
+	LEFT JOIN users as a ON ap.managerid = a.id
+	JOIN categories as c ON ass.categoryid = c.id
 	where ap.id = ? `)
 	if err != nil {
 		fmt.Println("1",err)
@@ -212,7 +213,7 @@ func (ar *ApplicationRepository)GetById(id int)(entities.ResponseApplication,err
 		return app, errors.New("internal server error")
 	}
 
-	errScan := res.Scan(&app.Id, &app.Employeeid, &app.Managerid, &app.Assetid, &app.Itemid, &app.Requestdate, &app.Returndate, &app.Specification, &app.Description, &app.Status, &app.Updatedat, &app.Employeename, &app.Managername, &app.Assetname, &app.ItemName, &app.Photo)
+	errScan := res.Scan(&app.Id, &app.Employeeid, &app.Managerid, &app.Assetid, &app.Itemid, &app.Requestdate, &app.Returndate, &app.Specification, &app.Description, &app.Status, &app.Updatedat, &app.Employeename, &app.Managername, &app.Assetname, &app.ItemName, &app.Photo, &app.Categoryid, &app.Categoryname)
 	if errScan != nil {
 		fmt.Println("3",err)
 		return app, errScan
@@ -221,53 +222,84 @@ func (ar *ApplicationRepository)GetById(id int)(entities.ResponseApplication,err
 	return app, nil
 }
 
-func (ar *ApplicationRepository)GetAll(status string,category int,date string,orderbydate string,longestdate string,page int) ([]entities.Applications,int, error){
-	var apps []entities.Applications
+func (ar *ApplicationRepository)GetAll(status string,category int,date string,orderbydate string,longestdate string) ([]entities.ResponseApplication,int, error){
+	var apps []entities.ResponseApplication
 	var totalApp int
 	var err error
 	var result *sql.Rows
-	limit := 10
-	offset := (page - 1) * limit
+	// limit := 10
+	// offset := (page - 1) * limit
 	if category != 0 {
-	result, err = ar.db.Query(`select a.id, a.employeeid, a.managerid, a.assetid, a.itemid, a.requestdate, a.returndate, a.spesification, a.description, a.status, a.updatedat 
-		from applications as a 
-		inner join assets as c on a.assetid = c.id 
-		where c.categoryid = ?
-		limit ? offset ?`, category, limit, offset)
+	result, err = ar.db.Query(`select ap.id,ap.employeeid, ap.managerid, ap.assetid, ap.itemid, ap.requestdate, ap.returndate, ap.spesification, ap.description, ap.status, ap.updatedat, u.name, a.name, ass.name, i.name, ass.picture, ass.categoryid, c.name
+	FROM applications ap
+	JOIN assets as ass ON ap.assetid = ass.id
+	JOIN users as u ON ap.employeeid = u.id
+	LEFT JOIN items as i ON ap.itemid = i.id
+	LEFT JOIN users as a ON ap.managerid = a.id
+	JOIN categories as c ON ass.categoryid = c.id
+	where ass.categoryid = ?`, category)
 	} else if status != ""{
-	result, err = ar.db.Query(`select a.id, a.employeeid, a.managerid, a.assetid, a.itemid, a.requestdate, a.returndate, a.spesification, a.description, a.status, a.updatedat 
-		from applications as a 
-		where a.status = ?
-		limit ? offset ?`, status, limit, offset)
+	result, err = ar.db.Query(`select ap.id,ap.employeeid, ap.managerid, ap.assetid, ap.itemid, ap.requestdate, ap.returndate, ap.spesification, ap.description, ap.status, ap.updatedat, u.name, a.name, ass.name, i.name, ass.picture, ass.categoryid, c.name
+	FROM applications ap
+	JOIN assets as ass ON ap.assetid = ass.id
+	JOIN users as u ON ap.employeeid = u.id
+	LEFT JOIN items as i ON ap.itemid = i.id
+	LEFT JOIN users as a ON ap.managerid = a.id
+	JOIN categories as c ON ass.categoryid = c.id
+		where ap.status = ?`, status)
 	} else if date != ""{
-	result, err = ar.db.Query(`select a.id, a.employeeid, a.managerid, a.assetid, a.itemid, a.requestdate, a.returndate, a.spesification, a.description, a.status, a.updatedat 
-		from applications as a 
-		where date(a.requestdate) = ?
-		limit ? offset ?`, date, limit, offset)
+	result, err = ar.db.Query(`select ap.id,ap.employeeid, ap.managerid, ap.assetid, ap.itemid, ap.requestdate, ap.returndate, ap.spesification, ap.description, ap.status, ap.updatedat, u.name, a.name, ass.name, i.name, ass.picture, ass.categoryid, c.name
+	FROM applications ap
+	JOIN assets as ass ON ap.assetid = ass.id
+	JOIN users as u ON ap.employeeid = u.id
+	LEFT JOIN items as i ON ap.itemid = i.id
+	LEFT JOIN users as a ON ap.managerid = a.id
+	JOIN categories as c ON ass.categoryid = c.id
+		where date(ap.requestdate) = ?`, date)
 	} else if orderbydate == "asc"{
-	result, err = ar.db.Query(`select a.id, a.employeeid, a.managerid, a.assetid, a.itemid, a.requestdate, a.returndate, a.spesification, a.description, a.status, a.updatedat 
-		from applications as a 
-		order by a.requestdate asc
-		limit ? offset ?`, limit, offset)
+	result, err = ar.db.Query(`select ap.id,ap.employeeid, ap.managerid, ap.assetid, ap.itemid, ap.requestdate, ap.returndate, ap.spesification, ap.description, ap.status, ap.updatedat, u.name, a.name, ass.name, i.name, ass.picture, ass.categoryid, c.name
+	FROM applications ap
+	JOIN assets as ass ON ap.assetid = ass.id
+	JOIN users as u ON ap.employeeid = u.id
+	LEFT JOIN items as i ON ap.itemid = i.id
+	LEFT JOIN users as a ON ap.managerid = a.id
+	JOIN categories as c ON ass.categoryid = c.id
+		order by ap.requestdate asc`)
 	} else if orderbydate == "desc"{
-	result, err = ar.db.Query(`select a.id, a.employeeid, a.managerid, a.assetid, a.itemid, a.requestdate, a.returndate, a.spesification, a.description, a.status, a.updatedat 
-		from applications as a 
-		order by a.requestdate desc
-		limit ? offset ?`, limit, offset)
+	result, err = ar.db.Query(`select ap.id,ap.employeeid, ap.managerid, ap.assetid, ap.itemid, ap.requestdate, ap.returndate, ap.spesification, ap.description, ap.status, ap.updatedat, u.name, a.name, ass.name, i.name, ass.picture, ass.categoryid, c.name
+	FROM applications ap
+	JOIN assets as ass ON ap.assetid = ass.id
+	JOIN users as u ON ap.employeeid = u.id
+	LEFT JOIN items as i ON ap.itemid = i.id
+	LEFT JOIN users as a ON ap.managerid = a.id
+	JOIN categories as c ON ass.categoryid = c.id
+		order by ap.requestdate desc`)
 	} else if longestdate == "asc"{
-	result, err = ar.db.Query(`select a.id, a.employeeid, a.managerid, a.assetid, a.itemid, a.requestdate, a.returndate, a.spesification, a.description, a.status, a.updatedat 
-		from applications as a 
-		order by a.returndate asc
-		limit ? offset ?`, limit, offset)
+	result, err = ar.db.Query(`select ap.id,ap.employeeid, ap.managerid, ap.assetid, ap.itemid, ap.requestdate, ap.returndate, ap.spesification, ap.description, ap.status, ap.updatedat, u.name, a.name, ass.name, i.name, ass.picture, ass.categoryid, c.name
+	FROM applications ap
+	JOIN assets as ass ON ap.assetid = ass.id
+	JOIN users as u ON ap.employeeid = u.id
+	LEFT JOIN items as i ON ap.itemid = i.id
+	LEFT JOIN users as a ON ap.managerid = a.id
+	JOIN categories as c ON ass.categoryid = c.id
+		order by ap.returndate asc`)
 	} else if longestdate == "desc"{
-	result, err = ar.db.Query(`select a.id, a.employeeid, a.managerid, a.assetid, a.itemid, a.requestdate, a.returndate, a.spesification, a.description, a.status, a.updatedat 
-		from applications as a 
-		order by a.returndate desc
-		limit ? offset ?`, limit, offset)
+	result, err = ar.db.Query(`select ap.id,ap.employeeid, ap.managerid, ap.assetid, ap.itemid, ap.requestdate, ap.returndate, ap.spesification, ap.description, ap.status, ap.updatedat, u.name, a.name, ass.name, i.name, ass.picture, ass.categoryid, c.name
+	FROM applications ap
+	JOIN assets as ass ON ap.assetid = ass.id
+	JOIN users as u ON ap.employeeid = u.id
+	LEFT JOIN items as i ON ap.itemid = i.id
+	LEFT JOIN users as a ON ap.managerid = a.id
+	JOIN categories as c ON ass.categoryid = c.id
+		order by ap.returndate desc`)
 	} else {
-	result, err = ar.db.Query(`select a.id, a.employeeid, a.managerid, a.assetid, a.itemid, a.requestdate, a.returndate, a.spesification, a.description, a.status, a.updatedat 
-		from applications as a 
-		limit ? offset ?`, limit, offset)
+	result, err = ar.db.Query(`select ap.id,ap.employeeid, ap.managerid, ap.assetid, ap.itemid, ap.requestdate, ap.returndate, ap.spesification, ap.description, ap.status, ap.updatedat, u.name, a.name, ass.name, i.name, ass.picture, ass.categoryid, c.name
+	FROM applications ap
+	JOIN assets as ass ON ap.assetid = ass.id
+	JOIN users as u ON ap.employeeid = u.id
+	LEFT JOIN items as i ON ap.itemid = i.id
+	LEFT JOIN users as a ON ap.managerid = a.id
+	JOIN categories as c ON ass.categoryid = c.id`)
 	}
 	if err != nil {
 		fmt.Println("Get 1", err)
@@ -275,8 +307,8 @@ func (ar *ApplicationRepository)GetAll(status string,category int,date string,or
 	}
 
 	for result.Next() {
-		var app entities.Applications
-		err := result.Scan(&app.Id, &app.Employeeid, &app.Managerid, &app.AssetId, &app.Itemid, &app.Requestdate, &app.Returndate, &app.Specification, &app.Description, &app.Status, &app.Updatedat)
+		var app entities.ResponseApplication
+		err := result.Scan(&app.Id, &app.Employeeid, &app.Managerid, &app.Assetid, &app.Itemid, &app.Requestdate, &app.Returndate, &app.Specification, &app.Description, &app.Status, &app.Updatedat, &app.Employeename, &app.Managername, &app.Assetname, &app.ItemName, &app.Photo, &app.Categoryid, &app.Categoryname)
 		if err!= nil {
 			fmt.Println("~~~converting NULL to string is unsupported~~~")
 			return apps, totalApp, err
@@ -322,12 +354,14 @@ func (ar *ApplicationRepository)GetAll(status string,category int,date string,or
 	return apps, totalApp, nil
 }
 
-func (ar *ApplicationRepository)UsersApplicationHistory(userid int)(entities.ResponseUserApplication,error){
-	var app entities.ResponseUserApplication
-	stmt, err := ar.db.Prepare(`select ap.id,ap.employeeid, ap.managerid, ap.assetid, ap.itemid, ap.requestdate, ap.returndate, ap.spesification, ap.description, ap.status, ap.updatedat, u.name, ass.name, ass.picture, c.name
+func (ar *ApplicationRepository)UsersApplicationHistory(userid int)(entities.ResponseApplication,error){
+	var app entities.ResponseApplication
+	stmt, err := ar.db.Prepare(`select ap.id,ap.employeeid, ap.managerid, ap.assetid, ap.itemid, ap.requestdate, ap.returndate, ap.spesification, ap.description, ap.status, ap.updatedat, u.name, a.name, ass.name, i.name, ass.picture, ass.categoryid, c.name
 	FROM applications ap
 	JOIN assets as ass ON ap.assetid = ass.id
 	JOIN users as u ON ap.employeeid = u.id
+	LEFT JOIN items as i ON ap.itemid = i.id
+	LEFT JOIN users as a ON ap.managerid = a.id
 	JOIN categories as c ON ass.categoryid = c.id
 	where ap.employeeid = ? and ap.status = ?`)
 	if err != nil {
@@ -345,7 +379,7 @@ func (ar *ApplicationRepository)UsersApplicationHistory(userid int)(entities.Res
 		return app, errors.New("internal server error")
 	}
 
-	errScan := res.Scan(&app.Id, &app.Employeeid, &app.Managerid, &app.Assetid, &app.Itemid, &app.Requestdate, &app.Returndate, &app.Specification, &app.Description, &app.Status, &app.Updatedat, &app.Employeename, &app.Assetname, &app.Photo, &app.Categoryname)
+	errScan := res.Scan(&app.Id, &app.Employeeid, &app.Managerid, &app.Assetid, &app.Itemid, &app.Requestdate, &app.Returndate, &app.Specification, &app.Description, &app.Status, &app.Updatedat, &app.Employeename, &app.Managername, &app.Assetname, &app.ItemName, &app.Photo, &app.Categoryid, &app.Categoryname)
 	if errScan != nil {
 		return app, errScan
 	}
@@ -353,12 +387,14 @@ func (ar *ApplicationRepository)UsersApplicationHistory(userid int)(entities.Res
 	return app, nil
 }
 
-func (ar *ApplicationRepository)UsersApplicationActivity(userid int)(entities.ResponseUserApplication,error){
-	var app entities.ResponseUserApplication
-	stmt, err := ar.db.Prepare(`select ap.id,ap.employeeid, ap.managerid, ap.assetid, ap.itemid, ap.requestdate, ap.returndate, ap.spesification, ap.description, ap.status, ap.updatedat, u.name, ass.name, ass.picture, c.name
+func (ar *ApplicationRepository)UsersApplicationActivity(userid int)(entities.ResponseApplication,error){
+	var app entities.ResponseApplication
+	stmt, err := ar.db.Prepare(`select ap.id,ap.employeeid, ap.managerid, ap.assetid, ap.itemid, ap.requestdate, ap.returndate, ap.spesification, ap.description, ap.status, ap.updatedat, u.name, a.name, ass.name, i.name, ass.picture, ass.categoryid, c.name
 	FROM applications ap
 	JOIN assets as ass ON ap.assetid = ass.id
 	JOIN users as u ON ap.employeeid = u.id
+	LEFT JOIN items as i ON ap.itemid = i.id
+	LEFT JOIN users as a ON ap.managerid = a.id
 	JOIN categories as c ON ass.categoryid = c.id
 	where ap.employeeid = ? and not ap.status = ?
 	`)
@@ -377,7 +413,7 @@ func (ar *ApplicationRepository)UsersApplicationActivity(userid int)(entities.Re
 		return app, errors.New("internal server error")
 	}
 
-	errScan := res.Scan(&app.Id, &app.Employeeid, &app.Managerid, &app.Assetid, &app.Itemid, &app.Requestdate, &app.Returndate, &app.Specification, &app.Description, &app.Status, &app.Updatedat, &app.Employeename, &app.Assetname, &app.Photo, &app.Categoryname)
+	errScan := res.Scan(&app.Id, &app.Employeeid, &app.Managerid, &app.Assetid, &app.Itemid, &app.Requestdate, &app.Returndate, &app.Specification, &app.Description, &app.Status, &app.Updatedat, &app.Employeename, &app.Managername, &app.Assetname, &app.ItemName, &app.Photo, &app.Categoryid, &app.Categoryname)
 	if errScan != nil {
 		return app, errScan
 	}
