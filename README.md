@@ -1,4 +1,4 @@
-# Employee Asset Management Rest Api
+# Employee Asset Management
 
 Application to facilitate requests and monitoring of employee assets in the company.
 Facilitate the process of checking asset availability, requesting asset loans, and monitoring assets, where company assets will be supervised by the admin and approved by the manager.
@@ -32,7 +32,7 @@ Memudahkan proses pengecekan ketersediaan asset, permintaan peminjaman asset, da
 - Role Base Login User
 - Create, Read, Update Application
 - Create, Read, Update Procurement
-- Read, Update Asset
+- Create, Read Asset
 - Read, Update Item
 - Read Employee
 
