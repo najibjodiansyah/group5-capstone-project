@@ -56,9 +56,9 @@ func (ac ApplicationController) Create() echo.HandlerFunc {
 		app.Specification = input.Specification
 		app.Description = input.Description
 		if role == "admin" {
-			app.Status = "toManager"
+			app.Status = "tomanager"
 		} else if role == "employee" {
-			app.Status = "toAdmin"
+			app.Status = "toadmin"
 		}
 
 		appId, _, errRepo := ac.repository.Create(app)
