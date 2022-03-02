@@ -4,7 +4,9 @@ import (
 	"capstone-project/delivery/controllers/asset"
 	"capstone-project/delivery/controllers/auth"
 	"capstone-project/delivery/controllers/item"
+	"capstone-project/delivery/controllers/procurement"
 	"capstone-project/delivery/controllers/user"
+	"capstone-project/delivery/middlewares"
 
 	"github.com/labstack/echo/v4"
 )
@@ -14,7 +16,8 @@ func RegisterPath(
 	userConstroller *user.UserController,
 	authController *auth.AuthController,
 	assetController *asset.AssetController,
-	itemController *item.ItemController) {
+	itemController *item.ItemController,
+	procurementController *procurement.ProcurementController) {
 	api := e.Group("/api/v1")
 	//User
 	api.POST("/users", userConstroller.Register())
@@ -35,4 +38,10 @@ func RegisterPath(
 	api.GET("/items/:id", itemController.GetById())
 	api.PUT("/items/:id", itemController.Update())
 	api.GET("/items/:id/usage", itemController.GetItemUsageHistory())
+
+	//Procurement
+	api.POST("/procurements", procurementController.Create(), middlewares.JWTMiddleware())
+	api.GET("/procurements", procurementController.Get())
+	api.GET("/procurements/:id", procurementController.GetById())
+	api.PUT("/procurements/:id", procurementController.Update(), middlewares.JWTMiddleware())
 }

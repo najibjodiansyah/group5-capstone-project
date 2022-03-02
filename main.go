@@ -5,11 +5,13 @@ import (
 	_assetController "capstone-project/delivery/controllers/asset"
 	_authController "capstone-project/delivery/controllers/auth"
 	_itemController "capstone-project/delivery/controllers/item"
+	_procurementController "capstone-project/delivery/controllers/procurement"
 	_userController "capstone-project/delivery/controllers/user"
 	"capstone-project/delivery/routes"
 	_assetRepo "capstone-project/repository/asset"
 	_authRepo "capstone-project/repository/auth"
 	_itemRepo "capstone-project/repository/item"
+	_procurementRepo "capstone-project/repository/procurement"
 	_userRepo "capstone-project/repository/user"
 	"log"
 	"os"
@@ -37,18 +39,20 @@ func main() {
 	authRepo := _authRepo.New(db)
 	itemRepo := _itemRepo.New(db)
 	assetRepo := _assetRepo.New(db)
+	procurementRepo := _procurementRepo.New(db)
 
 	// initialize controller
 	userController := _userController.New(userRepo)
 	authController := _authController.New(authRepo)
 	itemController := _itemController.New(itemRepo)
 	assetController := _assetController.New(assetRepo)
+	procurementController := _procurementController.New(procurementRepo)
 
 	// create new echo
 	e := echo.New()
 
 	e.Pre(middleware.RemoveTrailingSlash(), middleware.CORS())
-	routes.RegisterPath(e, userController, authController, assetController, itemController)
+	routes.RegisterPath(e, userController, authController, assetController, itemController, procurementController)
 
 	// start the server, and log if it fails
 	e.Logger.Fatal(e.Start(":8080"))
