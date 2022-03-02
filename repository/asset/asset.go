@@ -118,19 +118,21 @@ func (ar *AssetRepository) GetAll(page int, category int)([]entities.Asset,int,e
 
 	if category == 0 && page == 0 {
 		result, err = ar.db.Query(`select a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat from assets as a 
-			inner join categories as c on a.categoryid = c.id`)
+			inner join categories as c on a.categoryid = c.id order by a.id desc`)
 	}else if page != 0 && category == 0{
 		result, err = ar.db.Query(`select a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat from assets as a 
-			inner join categories as c on a.categoryid = c.id limit ? offset?` ,limit, offset)
+			inner join categories as c on a.categoryid = c.id order by a.id desc limit ? offset?` ,limit, offset)
 	}else if category != 0 && page == 0{
 		result, err = ar.db.Query(`select a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat from assets as a 
 			inner join categories as c on a.categoryid = c.id 
-			where a.categoryid= ?`, category)
+			where a.categoryid= ?
+			order by a.id desc`, category)
 	} else if category != 0 && page != 0 {
 		result, err = ar.db.Query(
 			`select a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat from assets as a 
 			inner join categories as c on a.categoryid = c.id 
 			where a.categoryid= ?
+			order by a.id desc
 			limit ? offset?`, category, limit, offset)
 	}
 	if err != nil {
