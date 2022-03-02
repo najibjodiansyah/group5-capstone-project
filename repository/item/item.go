@@ -119,7 +119,7 @@ func (r *ItemRepository) GetById(id int) (entities.ItemResponseFormat, error) {
 		return item, nil
 	}
 
-	return item, fmt.Errorf("user not found")
+	return item, fmt.Errorf("item not found")
 }
 
 func (r *ItemRepository) GetByIdUpdate(id int) (entities.Item, error) {
