@@ -25,21 +25,21 @@ func (r *ItemRepository) Get(availableStatus string, category int, keyword strin
 	if availableStatus != "" && page != 0 {
 		result, err = r.db.Query(`select i.id, i.name, a.description, a.categoryid, c.name, a.picture, i.availablestatus from items i
 		join assets a ON i.assetid = a.id
-		join categories c ON a.categoryid = c.id where i.availableStatus=? limit ? offset ?`, availableStatus, limit, offset)
+		join categories c ON a.categoryid = c.id where i.availableStatus=? order by i.id desc limit ? offset ?`, availableStatus, limit, offset)
 	} else if category != 0 && page != 0 {
 		result, err = r.db.Query(`select i.id, i.name, a.description, a.categoryid, c.name, a.picture, i.availablestatus from items i
 		join assets a ON i.assetid = a.id
-		join categories c ON a.categoryid = c.id where a.categoryid=? limit ? offset ?`, category, limit, offset)
+		join categories c ON a.categoryid = c.id where a.categoryid=? order by i.id desc limit ? offset ?`, category, limit, offset)
 	} else if keyword != "" && page != 0 {
 		kw := "%" + keyword + "%"
 		query := fmt.Sprintf(`select i.id, i.name, a.description, a.categoryid, c.name, a.picture, i.availablestatus from items i
 		join assets a ON i.assetid = a.id
-		join categories c ON a.categoryid = c.id where upper(i.name) like '%v' limit %v offset %v`, kw, limit, offset)
+		join categories c ON a.categoryid = c.id where upper(i.name) like '%v' order by i.id desc limit %v offset %v`, kw, limit, offset)
 		result, err = r.db.Query(query)
 	} else if page != 0 {
 		result, err = r.db.Query(`select i.id, i.name, a.description, a.categoryid, c.name, a.picture, i.availablestatus from items i
 		join assets a ON i.assetid = a.id
-		join categories c ON a.categoryid = c.id limit ? offset ?`, limit, offset)
+		join categories c ON a.categoryid = c.id order by i.id desc limit ? offset ?`, limit, offset)
 	}
 	// stmt, err := r.db.Prepare(`select i.id, i.name, a.categoryid, c.name, a.picture, i.availablestatus from items i
 	// join assets a ON i.assetid = a.id
