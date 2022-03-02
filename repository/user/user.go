@@ -129,3 +129,31 @@ func (ur *UserRepository) Delete(id int) error {
 
 	return nil
 }
+
+func (ur *UserRepository) GetEmployees() ([]entities.Employee,error) {
+	var users []entities.Employee
+	stmt, err := ur.db.Prepare(`select id, name from users where role = ?`)
+	if err != nil {
+		log.Println("1",err)
+		return nil, errors.New("internal server error")
+	}
+
+	res, err := stmt.Query("employee")
+	if err != nil {
+		log.Println("2",err)
+		return nil, errors.New("internal server error")
+	}
+
+	defer res.Close()
+
+	for res.Next(){
+		var user entities.Employee
+		err := res.Scan(&user.ID, &user.Name)
+		if err != nil {
+			log.Println("3",err)
+			return nil, errors.New("internal server error")
+		}
+		users = append(users, user)
+	}
+	return users, nil
+}

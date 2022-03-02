@@ -4,6 +4,7 @@ import (
 	"capstone-project/entities"
 	userRepo "capstone-project/repository/user"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -209,5 +210,16 @@ func (uc UserController) Delete() echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusOK, response.SuccessOperationDefault("success", "delete success"))
+	}
+}
+
+func (uc UserController) GetEmployees() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		users, err := uc.repository.GetEmployees()
+		if err != nil {
+			log.Println(err)
+			return c.JSON(http.StatusBadRequest, response.BadRequest("failed",err.Error()))
+		}
+		return c.JSON(http.StatusOK, response.SuccessOperation("success", "success get employees", users))
 	}
 }

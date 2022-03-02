@@ -23,21 +23,21 @@ func (r *ItemRepository) Get(availableStatus string, category int, keyword strin
 	limit := 10
 	offset := (page - 1) * limit
 	if availableStatus != "" && page != 0 {
-		result, err = r.db.Query(`select i.id, i.name, a.categoryid, c.name, a.picture, i.availablestatus from items i
+		result, err = r.db.Query(`select i.id, i.name, a.description, a.categoryid, c.name, a.picture, i.availablestatus from items i
 		join assets a ON i.assetid = a.id
 		join categories c ON a.categoryid = c.id where i.availableStatus=? limit ? offset ?`, availableStatus, limit, offset)
 	} else if category != 0 && page != 0 {
-		result, err = r.db.Query(`select i.id, i.name, a.categoryid, c.name, a.picture, i.availablestatus from items i
+		result, err = r.db.Query(`select i.id, i.name, a.description, a.categoryid, c.name, a.picture, i.availablestatus from items i
 		join assets a ON i.assetid = a.id
 		join categories c ON a.categoryid = c.id where a.categoryid=? limit ? offset ?`, category, limit, offset)
 	} else if keyword != "" && page != 0 {
 		kw := "%" + keyword + "%"
-		query := fmt.Sprintf(`select i.id, i.name, a.categoryid, c.name, a.picture, i.availablestatus from items i
+		query := fmt.Sprintf(`select i.id, i.name, a.description, a.categoryid, c.name, a.picture, i.availablestatus from items i
 		join assets a ON i.assetid = a.id
 		join categories c ON a.categoryid = c.id where upper(i.name) like '%v' limit %v offset %v`, kw, limit, offset)
 		result, err = r.db.Query(query)
 	} else if page != 0 {
-		result, err = r.db.Query(`select i.id, i.name, a.categoryid, c.name, a.picture, i.availablestatus from items i
+		result, err = r.db.Query(`select i.id, i.name, a.description, a.categoryid, c.name, a.picture, i.availablestatus from items i
 		join assets a ON i.assetid = a.id
 		join categories c ON a.categoryid = c.id limit ? offset ?`, limit, offset)
 	}
@@ -55,7 +55,7 @@ func (r *ItemRepository) Get(availableStatus string, category int, keyword strin
 
 	for result.Next() {
 		var item entities.ItemResponseFormat
-		err := result.Scan(&item.ID, &item.Name, &item.CategoryId, &item.Category, &item.Picture, &item.AvailableStatus)
+		err := result.Scan(&item.ID, &item.Name, &item.Description, &item.CategoryId, &item.Category, &item.Picture, &item.AvailableStatus)
 		if err != nil {
 			fmt.Println("2", err)
 			log.Fatal("error di scan get item")
@@ -96,7 +96,7 @@ func (r *ItemRepository) Get(availableStatus string, category int, keyword strin
 
 func (r *ItemRepository) GetById(id int) (entities.ItemResponseFormat, error) {
 	var item entities.ItemResponseFormat
-	stmt, err := r.db.Prepare(`select i.id, i.name, a.categoryid, c.name, a.picture, i.availablestatus from items i
+	stmt, err := r.db.Prepare(`select i.id, i.name, a.description, a.categoryid, c.name, a.picture, i.availablestatus from items i
 	join assets a ON i.assetid = a.id
 	join categories c ON a.categoryid = c.id where i.id=?`)
 	if err != nil {
@@ -112,7 +112,7 @@ func (r *ItemRepository) GetById(id int) (entities.ItemResponseFormat, error) {
 	defer result.Close()
 
 	for result.Next() {
-		err := result.Scan(&item.ID, &item.Name, &item.CategoryId, &item.Category, &item.Picture, &item.AvailableStatus)
+		err := result.Scan(&item.ID, &item.Name, &item.Description, &item.CategoryId, &item.Category, &item.Picture, &item.AvailableStatus)
 		if err != nil {
 			return item, err
 		}
@@ -203,10 +203,10 @@ func (r *ItemRepository) GetItemUsageHistory(id int) (entities.ItemUsageHistory,
 	// 	}
 	// }
 
-	statusDigunakan := "digunakan"
-	statusDkembalikan := "dikembalikan"
-	res, err := r.db.Query(`select u.name, updatedAt, status from applications a
-	join users u on a.employeeid=u.id where a.itemid=? and (a.status =? or a.status=?)`, id, statusDigunakan, statusDkembalikan)
+	inUse := "inuse"
+	doneReturn := "donereturn"
+	res, err := r.db.Query(`select u.name, requestDate, status from applications a
+	join users u on a.employeeid=u.id where a.itemid=? and (a.status =? or a.status=?)`, id, inUse, doneReturn)
 
 	if err != nil {
 		fmt.Println("1", err)

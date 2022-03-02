@@ -84,26 +84,26 @@ func (ar *AssetRepository) GetAll(page int, category int)([]entities.Asset,int,e
 	// 	condition += " where a.id = ?"
 	// }
 
-	// // if status != "" {
-	// // 	switch status {
-	// // 	case "digunakan":
-	// // 		condition += " and a.status = digunakan"
-	// // 	case "tersedia":
-	// // 		condition += " and a.status = tersedia"
-	// // 	case "pemeliharaan":
-	// // 		condition += " and a.status = pemeliharaan"
-	// // 	}
-	// // }
+	// if status != "" {
+	// 	switch status {
+	// 	case "digunakan":
+	// 		condition += " and a.status = digunakan"
+	// 	case "tersedia":
+	// 		condition += " and a.status = tersedia"
+	// 	case "pemeliharaan":
+	// 		condition += " and a.status = pemeliharaan"
+	// 	}
+	// }
 	// if category != 0 {
 	// 	query := "select a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat from assets as a inner join categories as c on a.categoryid = c.id where a.categoryid= ?"
 	// }
 
 	
-	// // stmt, err := ar.db.Prepare(query)
-	// // if err != nil {
-	// // 	log.Println(err)
-	// // 	return nil, err
-	// // }
+	// stmt, err := ar.db.Prepare(query)
+	// if err != nil {
+	// 	log.Println(err)
+	// 	return nil, err
+	// }
 
 	// res, err := stmt.Query(status,category)
 	// if err != nil {
@@ -113,7 +113,7 @@ func (ar *AssetRepository) GetAll(page int, category int)([]entities.Asset,int,e
 	var totalAsset int
 	var err error
 	var result *sql.Rows
-	limit := 5
+	limit := 10
 	offset := (page - 1) * limit
 
 	if category == 0 && page == 0 {
@@ -168,4 +168,33 @@ func (ar *AssetRepository) GetAll(page int, category int)([]entities.Asset,int,e
 		}
 	}
 	return assets, totalAsset, nil
+}
+
+func (ar *AssetRepository)GetCountAssetUsed(assetid int)(int, error){
+	stmt, err := ar.db.Prepare(`select count(id) as total from items where availableStatus = "digunakan" or availableStatus = "pemeliharaan" and assetid = ? group by assetid`)
+	if err != nil {
+		fmt.Println("Get 1", err)
+		return 0, err
+	}
+
+	res, err := stmt.Query(assetid)
+	if err != nil {
+		fmt.Println("Get 2", err)
+		return 0, err
+	}
+
+	defer res.Close()
+
+	if isExist := res.Next(); !isExist {
+		return 0, nil
+	}
+
+	var total int
+
+	errScan := res.Scan(&total)
+	if errScan != nil {
+		return 0, errScan
+	}
+
+	return total , nil
 }

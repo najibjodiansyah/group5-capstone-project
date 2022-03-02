@@ -13,6 +13,7 @@ type ItemResponseFormat struct {
 	CategoryId      int    `json:"categoryId" form:"categoryId"`
 	Category        string `json:"category" form:"category"`
 	Name            string `json:"name" form:"name"`
+	Description     string `json:"description" form:"description"`
 	Picture         string `json:"picture" form:"picture"`
 	AvailableStatus string `json:"availableStatus" form:"availableStatus"`
 }
