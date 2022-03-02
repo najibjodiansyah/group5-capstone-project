@@ -16,6 +16,6 @@ type Application interface {
 		longestdate string)([]entities.ResponseApplication,int, error)
 	GetById(id int)(entities.ResponseApplication,error)
 	GetAsset(applicationid int)(int,error)
-	UsersApplicationHistory(userid int)(entities.ResponseApplication,error)
-	UsersApplicationActivity(userid int)(entities.ResponseApplication,error)
+	UsersApplicationHistory(userid int)([]entities.ResponseApplication,error)
+	UsersApplicationActivity(userid int)([]entities.ResponseApplication,error)
 }

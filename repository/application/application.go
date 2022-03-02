@@ -354,8 +354,8 @@ func (ar *ApplicationRepository)GetAll(status string,category int,date string,or
 	return apps, totalApp, nil
 }
 
-func (ar *ApplicationRepository)UsersApplicationHistory(userid int)(entities.ResponseApplication,error){
-	var app entities.ResponseApplication
+func (ar *ApplicationRepository)UsersApplicationHistory(userid int)([]entities.ResponseApplication,error){
+	var apps []entities.ResponseApplication
 	stmt, err := ar.db.Prepare(`select ap.id,ap.employeeid, ap.managerid, ap.assetid, ap.itemid, ap.requestdate, ap.returndate, ap.spesification, ap.description, ap.status, ap.updatedat, u.name, a.name, ass.name, i.name, ass.picture, ass.categoryid, c.name
 	FROM applications ap
 	JOIN assets as ass ON ap.assetid = ass.id
@@ -366,29 +366,30 @@ func (ar *ApplicationRepository)UsersApplicationHistory(userid int)(entities.Res
 	where ap.employeeid = ? and ap.status = ?`)
 	if err != nil {
 		log.Println(err)
-		return app, errors.New("internal server error")
+		return apps, errors.New("internal server error")
 	}
 
 	res, err := stmt.Query(userid, "donereturn")
 	if err != nil {
 		log.Println(err)
-		return app, errors.New("internal server error")
+		return apps, errors.New("internal server error")
 	}
 
-	if isExist := res.Next(); !isExist {
-		return app, errors.New("internal server error")
+	for res.Next() {
+		var app entities.ResponseApplication
+		err := res.Scan(&app.Id, &app.Employeeid, &app.Managerid, &app.Assetid, &app.Itemid, &app.Requestdate, &app.Returndate, &app.Specification, &app.Description, &app.Status, &app.Updatedat, &app.Employeename, &app.Managername, &app.Assetname, &app.ItemName, &app.Photo, &app.Categoryid, &app.Categoryname)
+		if err!= nil {
+			fmt.Println("~~~converting NULL to string is unsupported~~~")
+			return apps, err
+		}
+		apps = append(apps, app)
 	}
 
-	errScan := res.Scan(&app.Id, &app.Employeeid, &app.Managerid, &app.Assetid, &app.Itemid, &app.Requestdate, &app.Returndate, &app.Specification, &app.Description, &app.Status, &app.Updatedat, &app.Employeename, &app.Managername, &app.Assetname, &app.ItemName, &app.Photo, &app.Categoryid, &app.Categoryname)
-	if errScan != nil {
-		return app, errScan
-	}
-
-	return app, nil
+	return apps, nil
 }
 
-func (ar *ApplicationRepository)UsersApplicationActivity(userid int)(entities.ResponseApplication,error){
-	var app entities.ResponseApplication
+func (ar *ApplicationRepository)UsersApplicationActivity(userid int)([]entities.ResponseApplication,error){
+	var apps []entities.ResponseApplication
 	stmt, err := ar.db.Prepare(`select ap.id,ap.employeeid, ap.managerid, ap.assetid, ap.itemid, ap.requestdate, ap.returndate, ap.spesification, ap.description, ap.status, ap.updatedat, u.name, a.name, ass.name, i.name, ass.picture, ass.categoryid, c.name
 	FROM applications ap
 	JOIN assets as ass ON ap.assetid = ass.id
@@ -400,23 +401,24 @@ func (ar *ApplicationRepository)UsersApplicationActivity(userid int)(entities.Re
 	`)
 	if err != nil {
 		log.Println(err)
-		return app, errors.New("internal server error")
+		return apps, errors.New("internal server error")
 	}
 
 	res, err := stmt.Query(userid, "donereturn")
 	if err != nil {
 		log.Println(err)
-		return app, errors.New("internal server error")
+		return apps, errors.New("internal server error")
 	}
 
-	if isExist := res.Next(); !isExist {
-		return app, errors.New("internal server error")
+	for res.Next() {
+		var app entities.ResponseApplication
+		err := res.Scan(&app.Id, &app.Employeeid, &app.Managerid, &app.Assetid, &app.Itemid, &app.Requestdate, &app.Returndate, &app.Specification, &app.Description, &app.Status, &app.Updatedat, &app.Employeename, &app.Managername, &app.Assetname, &app.ItemName, &app.Photo, &app.Categoryid, &app.Categoryname)
+		if err!= nil {
+			fmt.Println("~~~converting NULL to string is unsupported~~~")
+			return apps, err
+		}
+		apps = append(apps, app)
 	}
 
-	errScan := res.Scan(&app.Id, &app.Employeeid, &app.Managerid, &app.Assetid, &app.Itemid, &app.Requestdate, &app.Returndate, &app.Specification, &app.Description, &app.Status, &app.Updatedat, &app.Employeename, &app.Managername, &app.Assetname, &app.ItemName, &app.Photo, &app.Categoryid, &app.Categoryname)
-	if errScan != nil {
-		return app, errScan
-	}
-
-	return app, nil
+	return apps, nil
 }
