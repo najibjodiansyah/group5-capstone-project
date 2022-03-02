@@ -4,8 +4,10 @@ import (
 	"capstone-project/delivery/controllers/application"
 	"capstone-project/delivery/controllers/asset"
 	"capstone-project/delivery/controllers/auth"
+	"capstone-project/delivery/controllers/category"
 	"capstone-project/delivery/controllers/item"
 	"capstone-project/delivery/controllers/procurement"
+	"capstone-project/delivery/controllers/statistic"
 	"capstone-project/delivery/controllers/user"
 	"capstone-project/delivery/middlewares"
 
@@ -19,7 +21,9 @@ func RegisterPath(
 	assetController *asset.AssetController,
 	itemController *item.ItemController,
 	appController *application.ApplicationController,
-	procurementController *procurement.ProcurementController) {
+	procurementController *procurement.ProcurementController,
+	categoryController *category.CategoryController,
+	statisticController *statistic.StatisticController) {
 	api := e.Group("/api/v1")
 	//User
 	api.POST("/users", userConstroller.Register())
@@ -54,4 +58,10 @@ func RegisterPath(
 	api.GET("/procurements", procurementController.Get())
 	api.GET("/procurements/:id", procurementController.GetById())
 	api.PUT("/procurements/:id", procurementController.Update(), middlewares.JWTMiddleware())
+
+	//category
+	api.GET("/categories", categoryController.Get())
+
+	//statistic
+	api.GET("/statistics", statisticController.Get())
 }
