@@ -76,65 +76,47 @@ func (ar *AssetRepository) GetById(id int)(entities.Asset,error){
 	return asset, nil
 }
 
-func (ar *AssetRepository) GetAll(page int, category int)([]entities.Asset,int,error){
-	var assets []entities.Asset
-	// var condition string = ""
-
-	// if category != 0 {
-	// 	condition += " where a.id = ?"
-	// }
-
-	// if status != "" {
-	// 	switch status {
-	// 	case "digunakan":
-	// 		condition += " and a.status = digunakan"
-	// 	case "tersedia":
-	// 		condition += " and a.status = tersedia"
-	// 	case "pemeliharaan":
-	// 		condition += " and a.status = pemeliharaan"
-	// 	}
-	// }
-	// if category != 0 {
-	// 	query := "select a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat from assets as a inner join categories as c on a.categoryid = c.id where a.categoryid= ?"
-	// }
-
-	
-	// stmt, err := ar.db.Prepare(query)
-	// if err != nil {
-	// 	log.Println(err)
-	// 	return nil, err
-	// }
-
-	// res, err := stmt.Query(status,category)
-	// if err != nil {
-	// 	fmt.Println("2",err)
-	// 	return assets, errors.New("internal server error")
-	// }
-	var totalAsset int
-	var err error
-	var result *sql.Rows
+func (ar *AssetRepository) GetAll(page int, category int, keyword string)([]entities.Asset,int,error){
+	var (assets []entities.Asset
+	 	totalAsset int
+		err error
+	 	result *sql.Rows)
+		 
 	limit := 10
 	offset := (page - 1) * limit
 
-	if category == 0 && page == 0 {
-		result, err = ar.db.Query(`select a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat from assets as a 
-			inner join categories as c on a.categoryid = c.id order by a.id desc`)
-	}else if page != 0 && category == 0{
-		result, err = ar.db.Query(`select a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat from assets as a 
-			inner join categories as c on a.categoryid = c.id order by a.id desc limit ? offset?` ,limit, offset)
-	}else if category != 0 && page == 0{
-		result, err = ar.db.Query(`select a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat from assets as a 
-			inner join categories as c on a.categoryid = c.id 
-			where a.categoryid= ?
-			order by a.id desc`, category)
-	} else if category != 0 && page != 0 {
+	if category != 0 && page != 0 {
 		result, err = ar.db.Query(
 			`select a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat from assets as a 
 			inner join categories as c on a.categoryid = c.id 
 			where a.categoryid= ?
 			order by a.id desc
 			limit ? offset?`, category, limit, offset)
+	}else if keyword != "" && page != 0 {
+		word := "%" + keyword + "%"
+		query := fmt.Sprintf(
+			`select a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat 
+			from assets as a 
+			inner join categories as c on a.categoryid = c.id
+			where upper(a.name) like '%v' 
+			order by a.id desc
+			limit %v offset %v`, word, limit, offset)
+		result, err = ar.db.Query(query)
+	}else if page != 0 {
+		result, err = ar.db.Query(
+			`select a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat 
+			from assets as a 
+			inner join categories as c on a.categoryid = c.id 
+			order by a.id desc
+			limit ? offset ?`, limit, offset)
+	}else{
+		result, err = ar.db.Query(
+			`select a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat 
+			from assets as a 
+			inner join categories as c on a.categoryid = c.id 
+			order by a.id desc`)
 	}
+
 	if err != nil {
 		fmt.Println("Get 1", err)
 		return assets,totalAsset, err

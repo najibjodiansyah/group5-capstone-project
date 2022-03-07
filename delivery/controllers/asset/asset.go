@@ -141,10 +141,11 @@ func (ac AssetController)GetById()echo.HandlerFunc{
 func (ac AssetController)GetAll()echo.HandlerFunc{
 	return func(c echo.Context) error {
 
-		var category,pagination,status string
+		var category,pagination,status,keyword string
 		category = c.QueryParam("category")
 		pagination = c.QueryParam("page")
-		status = c.QueryParam("status") // "tersedia" & "tidaktersedia"
+		status = c.QueryParam("status") 
+		keyword = c.QueryParam("keyword")
 		if category == "" {
 			category = "0"
 		}
@@ -162,7 +163,7 @@ func (ac AssetController)GetAll()echo.HandlerFunc{
 				return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert category_id"))
 			}
 
-		assets,totalAsset, err := ac.repository.GetAll(page,categoryid)
+		assets,totalAsset, err := ac.repository.GetAll(page,categoryid,keyword)
 		if err!= nil {
 			fmt.Println(err)
 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to fetch data"))
