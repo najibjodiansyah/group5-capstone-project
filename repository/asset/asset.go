@@ -52,13 +52,16 @@ func (ar *AssetRepository) GenerateItem(assetName string, assetId int) error {
 
 func (ar *AssetRepository) GetById(id int)(entities.Asset,error){
 	var asset entities.Asset
-	stmt, err := ar.db.Prepare("select a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat from assets as a inner join categories as c on a.categoryid = c.id  where a.id = ?")
+	stmt, err := ar.db.Prepare(`select a.id, a.name, a.description, a.categoryid, c.name, a.quantity, a.picture, a.createdat from assets as a 
+	inner join categories as c on a.categoryid = c.id  
+	where a.id = ?`)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("1",err)
 		return asset, errors.New("internal server error")
 	}
 	res, err := stmt.Query(id)
 	if err != nil {
+		fmt.Println("2",err)
 		return asset, errors.New("internal server error")
 	}
 
@@ -70,6 +73,7 @@ func (ar *AssetRepository) GetById(id int)(entities.Asset,error){
 
 	errScan := res.Scan(&asset.Id, &asset.Name, &asset.Description, &asset.CategoryId, &asset.CategoryName, &asset.Quantity, &asset.Picture, &asset.CreatedAt)
 	if errScan != nil {
+		fmt.Println("3",err)
 		return asset, errScan
 	}
 
@@ -154,7 +158,7 @@ func (ar *AssetRepository) GetAll(page int, category int, keyword string)([]enti
 	return assets, totalAsset, nil
 }
 
-func (ar *AssetRepository)GetCountAssetUsed(assetid int)(int, error){
+func (ar *AssetRepository) GetCountAssetUsed(assetid int)(int, error){
 	stmt, err := ar.db.Prepare(`select count(id) as total from items where availableStatus = "digunakan" or availableStatus = "pemeliharaan" and assetid = ? group by assetid`)
 	if err != nil {
 		fmt.Println("Get 1", err)
@@ -181,4 +185,22 @@ func (ar *AssetRepository)GetCountAssetUsed(assetid int)(int, error){
 	}
 
 	return total , nil
+}
+
+func (ar *AssetRepository) Update(idasset int, asset entities.Asset)(entities.Asset, error){
+	fmt.Println(asset)
+	stmt, err := ar.db.Prepare(`UPDATE assets SET description= ? WHERE id = ?`)
+	if err != nil {
+		return asset, errors.New("internal server error")
+	}
+	result, err := stmt.Exec(asset.Description, idasset)
+	if err != nil {
+		return asset, errors.New("internal server error")
+	}
+	notAffected, _ := result.RowsAffected()
+	if notAffected == 0 {
+		log.Println("rows affected is 0 while update data")
+		return asset, errors.New("internal server error")
+	}
+	return asset, nil
 }

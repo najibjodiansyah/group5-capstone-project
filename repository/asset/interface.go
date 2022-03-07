@@ -8,4 +8,5 @@ type Asset interface {
 	GetById(id int)(entities.Asset,error)
 	GetAll(page int, category int, keyword string)([]entities.Asset, int, error)
 	GetCountAssetUsed(assetid int)(int, error)
+	Update(idasset int, asset entities.Asset)(entities.Asset, error)
 }
