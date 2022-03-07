@@ -238,7 +238,7 @@ func (ac ApplicationController) UpdateStatus() echo.HandlerFunc {
 				return c.JSON(http.StatusBadRequest, response.BadRequest("failed", err.Error()))
 			}
 
-			return c.JSON(http.StatusOK, response.SuccessOperationDefault("success", "success update status 'donereturn'"))
+			return c.JSON(http.StatusOK, response.SuccessOperationDefault("success", "success update status 'askreturn'"))
 		}
 
 		return c.JSON(http.StatusUnprocessableEntity,response.BadRequest("Bad Request", "status not recognized"))
