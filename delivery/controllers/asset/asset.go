@@ -212,3 +212,72 @@ func (ac AssetController)GetAll()echo.HandlerFunc{
 		return c.JSON(http.StatusOK, response.SuccessOperation("success", "success get all asset", responseData))
 	}
 }
+
+func (ac AssetController) Update()echo.HandlerFunc{
+	return func(c echo.Context) error {
+		asset := entities.Asset{}
+		if err_bind := c.Bind(&asset); err_bind != nil {
+			return c.JSON(http.StatusUnprocessableEntity, response.BadRequest("failed", "failed to bind data"))
+		}
+
+		assetid, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert id"))
+		}
+
+		current_asset, err := ac.repository.GetById(assetid)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to fetch data by id"))
+		}
+
+		if asset.Description != "" {
+			current_asset.Description = asset.Description
+		}
+
+		// src, file, err := c.Request().FormFile("picture")
+		// if err != nil {
+		// 	fmt.Println(err)
+		// 	return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to upload avatar"))
+		// }
+		// if file == nil{
+		// 	current_asset.Picture = asset.Picture
+		// }else{
+		// 	ext := strings.Split(file.Filename, ".")
+		// 	extension := ext[len(ext)-1]
+		// 	check_extension := strings.ToLower(extension)
+		// 	if check_extension != "jpg" && check_extension != "png" && check_extension != "jpeg" {
+		// 		return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "file extention not allowed"))
+		// 	}
+		// 	if file.Size == 0 {
+		// 		return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "illegal file size"))
+		// 	} else if file.Size > 1050000 {
+		// 		return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "file size exceeded the limit"))
+		// 	}
+	
+		// 	file.Filename = fmt.Sprintf("%d-%d.%s", assetid, time.Now().Unix(), extension)
+	
+		// 	sess := session.Must(util.GetAWSSession())
+	
+		// 	uploader := s3manager.NewUploader(sess)
+	
+		// 	_, err = uploader.Upload(&s3manager.UploadInput{
+		// 		Bucket: aws.String(os.Getenv("AWS_BUCKET")),
+		// 		Key:    aws.String(file.Filename),
+		// 		Body:   src,
+		// 	})
+	
+		// 	// detect failure while uploading file
+		// 	if err != nil {
+		// 		return c.JSON(http.StatusInternalServerError, response.InternalServerError("failed", "Internal server error"))
+		// 	}
+		// 	current_asset.Picture = fmt.Sprintf("https://capstone-group-5.s3.ap-southeast-1.amazonaws.com/%s", file.Filename)
+		// }
+		
+		_, err_update := ac.repository.Update(assetid, current_asset)
+		if err_update != nil {
+			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to update data"))
+		}
+
+		return c.JSON(http.StatusOK, response.SuccessOperationDefault("success", "success update asset"))
+	}
+}

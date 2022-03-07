@@ -39,6 +39,7 @@ func RegisterPath(
 	api.POST("/assets", assetController.Create())
 	api.GET("/assets/:id", assetController.GetById())
 	api.GET("/assets", assetController.GetAll())
+	api.PUT("/assets/:id", assetController.Update())
 
 	//Application
 	api.POST("/applications", appController.Create(), middlewares.JWTMiddleware())
