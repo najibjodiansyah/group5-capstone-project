@@ -107,7 +107,7 @@ func (uc UserController) Update() echo.HandlerFunc {
 		if err_bind := c.Bind(&user); err_bind != nil {
 			return c.JSON(http.StatusUnprocessableEntity, response.BadRequest("failed", "failed to bind data"))
 		}
-		// getting the id
+
 		userid, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert id"))
@@ -171,7 +171,6 @@ func (uc UserController) Update() echo.HandlerFunc {
 			Body:   src,
 		})
 
-		// detect failure while uploading file
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, response.InternalServerError("failed", "Internal server error"))
 		}
@@ -187,11 +186,11 @@ func (uc UserController) Update() echo.HandlerFunc {
 
 func (uc UserController) Delete() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		id, role, err := middlewares.ExtractToken(c)
+		id, _, err := middlewares.ExtractToken(c)
 		if err != nil {
 			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
 		}
-		// get id from param
+
 		userId, errConv := strconv.Atoi(c.Param("id"))
 		if errConv != nil {
 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert id"))
@@ -200,10 +199,7 @@ func (uc UserController) Delete() echo.HandlerFunc {
 		if userId != id {
 			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
 		}
-		
-		fmt.Println(role)
 
-		// delete user based on id from database
 		errDelete := uc.repository.Delete(userId)
 		if errDelete != nil {
 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "data not found"))
@@ -220,6 +216,7 @@ func (uc UserController) GetEmployees() echo.HandlerFunc {
 			log.Println(err)
 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed",err.Error()))
 		}
+		
 		return c.JSON(http.StatusOK, response.SuccessOperation("success", "success get employees", users))
 	}
 }
