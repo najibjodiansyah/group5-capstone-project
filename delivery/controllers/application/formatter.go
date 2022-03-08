@@ -12,7 +12,7 @@ type InputApp struct {
 }
 
 
-type Inputstatus struct {
+type InputStatus struct {
 	Status 		string	`json:"status"`
 }
 
