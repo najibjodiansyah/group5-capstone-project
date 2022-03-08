@@ -13,7 +13,7 @@ type Application interface {
 		category int,
 		date string,
 		orderbydate string,
-		longestdate string)([]entities.ResponseApplication,int, error)
+		longestdate string)([]entities.ResponseApplicationWithDuration,int, error)
 	GetById(id int)(entities.ResponseApplication,error)
 	GetAsset(applicationid int)(int,error)
 	UsersApplicationHistory(userid int)([]entities.ResponseApplication,error)
