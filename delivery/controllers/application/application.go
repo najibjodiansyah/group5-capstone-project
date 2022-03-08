@@ -46,9 +46,7 @@ func (ac ApplicationController) Create() echo.HandlerFunc {
 		app.Employeeid = input.Employeeid
 		app.AssetId	= input.Assetid
 		if input.Returndate == "" {
-			fmt.Println("string koshong")
 			app.Returndate = time.Now().Add(time.Hour * (24*365))
-			fmt.Println(app.Returndate)
 		} else {
 			returndate, _ := time.Parse("2006-01-02", input.Returndate)
 			app.Returndate = returndate

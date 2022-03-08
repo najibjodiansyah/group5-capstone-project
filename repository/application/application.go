@@ -222,8 +222,8 @@ func (ar *ApplicationRepository)GetById(id int)(entities.ResponseApplication,err
 	return app, nil
 }
 
-func (ar *ApplicationRepository)GetAll(status string,category int,date string,orderbydate string,longestdate string) ([]entities.ResponseApplication,int, error){
-	var apps []entities.ResponseApplication
+func (ar *ApplicationRepository)GetAll(status string,category int,date string,orderbydate string,longestdate string) ([]entities.ResponseApplicationWithDuration,int, error){
+	var apps []entities.ResponseApplicationWithDuration
 	var totalApp int
 	var err error
 	var result *sql.Rows
@@ -307,12 +307,16 @@ func (ar *ApplicationRepository)GetAll(status string,category int,date string,or
 	}
 
 	for result.Next() {
-		var app entities.ResponseApplication
+		var app entities.ResponseApplicationWithDuration
 		err := result.Scan(&app.Id, &app.Employeeid, &app.Managerid, &app.Assetid, &app.Itemid, &app.Requestdate, &app.Returndate, &app.Specification, &app.Description, &app.Status, &app.Updatedat, &app.Employeename, &app.Managername, &app.Assetname, &app.ItemName, &app.Photo, &app.Categoryid, &app.Categoryname)
 		if err!= nil {
-			fmt.Println("~~~converting NULL to string is unsupported~~~")
 			return apps, totalApp, err
 		}
+		diftime := app.Returndate.Sub(time.Now())
+		duration := fmt.Sprintf("%v days", int(diftime.Hours()/24))
+
+		app.Duration = duration
+		
 		apps = append(apps, app)
 	}
 
