@@ -196,7 +196,7 @@ func (ac ApplicationController) UpdateStatus() echo.HandlerFunc {
 			}
 
 			availstatus := "tersedia"
-			
+
 			if err := ac.repository.UpdateItem(app.Itemid, availstatus, -1); err != nil {
 				return c.JSON(http.StatusBadRequest, response.BadRequest("failed","Failed to update item table"))
 			}
@@ -236,7 +236,6 @@ func (ac ApplicationController) GetById()echo.HandlerFunc{
 	}
 }
 
-// GetAll
 func (ac ApplicationController) GetAll() echo.HandlerFunc{
 	return func(c echo.Context)error {
 		var status,category,date,orderbydate,longestdate string
@@ -245,24 +244,16 @@ func (ac ApplicationController) GetAll() echo.HandlerFunc{
 		date = c.QueryParam("date")
 		orderbydate = c.QueryParam("orderbydate")
 		longestdate = c.QueryParam("longestdate")
-		// pagination = c.QueryParam("page")
 
 		if category == "" {
 			category = "0"
 		}
-		// if pagination == "" {
-		// 	pagination = "0"
-		// }
-
+	
 		categoryid, err := strconv.Atoi(category)
 			if err != nil {
 				return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert category_id"))
 			}
 
-		// page, err := strconv.Atoi(pagination)
-		// 	if err != nil {
-		// 		return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert category_id"))
-		// 	}
 		app,totalAsset, err := ac.repository.GetAll(status,categoryid,date,orderbydate,longestdate)
 		if err!= nil {
 			fmt.Println(err)
