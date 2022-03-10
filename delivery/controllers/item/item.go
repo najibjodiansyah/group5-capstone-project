@@ -77,7 +77,7 @@ func (ic ItemController) GetById() echo.HandlerFunc {
 func (ic ItemController) Update() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		item := entities.Item{}
-		if err_bind := c.Bind(&item); err_bind != nil {
+		if errBind := c.Bind(&item); errBind != nil {
 			return c.JSON(http.StatusUnprocessableEntity, response.BadRequest("failed", "failed to bind data"))
 		}
 		// getting the id
@@ -95,11 +95,11 @@ func (ic ItemController) Update() echo.HandlerFunc {
 			updateItem.AvailableStatus = item.AvailableStatus
 		}
 
-		err_update := ic.repository.Update(itemId, updateItem)
-		if err_update != nil {
-			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to fetch data"))
+		errUpdate := ic.repository.Update(itemId, updateItem)
+		if errUpdate != nil {
+			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to update data"))
 		}
-		return c.JSON(http.StatusOK, response.SuccessOperationDefault("success", "success Update item"))
+		return c.JSON(http.StatusOK, response.SuccessOperationDefault("success", "success update item"))
 	}
 }
 
