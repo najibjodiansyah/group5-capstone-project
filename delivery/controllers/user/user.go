@@ -6,18 +6,14 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"strconv"
-	"strings"
-	"time"
+
+	// "os"
+	// "strconv"
+	// "strings"
+	// "time"
 
 	response "capstone-project/delivery/commons"
-	"capstone-project/delivery/middlewares"
-	"capstone-project/util"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -62,164 +58,161 @@ func (uc UserController) Register() echo.HandlerFunc {
 	}
 }
 
-func (uc UserController) GetById() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		id, _, err := middlewares.ExtractToken(c)
-		if err != nil {
-			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
-		}
+// func (uc UserController) GetById() echo.HandlerFunc {
+// 	return func(c echo.Context) error {
+// 		id, _, err := middlewares.ExtractToken(c)
+// 		if err != nil {
+// 			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
+// 		}
 
-		userId, err := strconv.Atoi(c.Param("id"))
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert id"))
-		}
+// 		userId, err := strconv.Atoi(c.Param("id"))
+// 		if err != nil {
+// 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert id"))
+// 		}
 
-		if userId != id {
-			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
-		}
+// 		if userId != id {
+// 			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
+// 		}
 
-		user, err := uc.repository.GetById(userId)
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to fetch data"))
-		}
+// 		user, err := uc.repository.GetById(userId)
+// 		if err != nil {
+// 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to fetch data"))
+// 		}
 
-		var responseUser ResponseUserFormat
-		responseUser.ID = user.ID
-		responseUser.Name = user.Name
-		responseUser.Email = user.Email
-		responseUser.Avatar = user.Avatar
-		responseUser.Role = user.Role
-		responseUser.CreatedAt = user.CreatedAt
+// 		var responseUser ResponseUserFormat
+// 		responseUser.ID = user.ID
+// 		responseUser.Name = user.Name
+// 		responseUser.Email = user.Email
+// 		responseUser.Avatar = user.Avatar
+// 		responseUser.Role = user.Role
+// 		responseUser.CreatedAt = user.CreatedAt
 
-		return c.JSON(http.StatusOK, response.SuccessOperation("success", "success get user", responseUser))
-	}
-}
+// 		return c.JSON(http.StatusOK, response.SuccessOperation("success", "success get user", responseUser))
+// 	}
+// }
 
-func (uc UserController) Update() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		id, role, err := middlewares.ExtractToken(c)
-		if err != nil {
-			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
-		}
-		// NOTES : misal gada perubahan pas update / update data yang sama
-		// NOTES : email gaboleh ganti dengan email yang sudah dipakai user lain
-		user := entities.User{}
-		if err_bind := c.Bind(&user); err_bind != nil {
-			return c.JSON(http.StatusUnprocessableEntity, response.BadRequest("failed", "failed to bind data"))
-		}
-		// getting the id
-		userid, err := strconv.Atoi(c.Param("id"))
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert id"))
-		}
+// func (uc UserController) Update() echo.HandlerFunc {
+// 	return func(c echo.Context) error {
+// 		id, role, err := middlewares.ExtractToken(c)
+// 		if err != nil {
+// 			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
+// 		}
+// 		// NOTES : misal gada perubahan pas update / update data yang sama
+// 		// NOTES : email gaboleh ganti dengan email yang sudah dipakai user lain
+// 		user := entities.User{}
+// 		if err_bind := c.Bind(&user); err_bind != nil {
+// 			return c.JSON(http.StatusUnprocessableEntity, response.BadRequest("failed", "failed to bind data"))
+// 		}
 
-		if userid != id {
-			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
-		}
+// 		userid, err := strconv.Atoi(c.Param("id"))
+// 		if err != nil {
+// 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert id"))
+// 		}
 
-		fmt.Println(role)
+// 		if userid != id {
+// 			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
+// 		}
 
-		hashedPassword, errEncrypt := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-		if errEncrypt != nil {
-			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to encrpyt password"))
-		}
-		user.Password = string(hashedPassword)
+// 		fmt.Println(role)
 
-		updateUser, err := uc.repository.GetById(userid)
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to fetch data by id"))
-		}
+// 		hashedPassword, errEncrypt := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+// 		if errEncrypt != nil {
+// 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to encrpyt password"))
+// 		}
+// 		user.Password = string(hashedPassword)
 
-		if user.Name != "" {
-			updateUser.Name = user.Name
-		}
-		if user.Email != "" {
-			updateUser.Email = user.Email
-		}
-		if user.Password != "" {
-			updateUser.Password = user.Password
-		}
-		if user.Role != "" {
-			updateUser.Role = user.Role
-		}
-		src, file, err := c.Request().FormFile("avatar")
-		if err != nil {
-			fmt.Println(err)
-			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to upload avatar"))
-		}
-		ext := strings.Split(file.Filename, ".")
-		extension := ext[len(ext)-1]
-		check_extension := strings.ToLower(extension)
-		if check_extension != "jpg" && check_extension != "png" && check_extension != "jpeg" {
-			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "file extention not allowed"))
-		}
-		if file.Size == 0 {
-			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "illegal file size"))
-		} else if file.Size > 1050000 {
-			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "file size exceeded the limit"))
-		}
+// 		updateUser, err := uc.repository.GetById(userid)
+// 		if err != nil {
+// 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to fetch data by id"))
+// 		}
 
-		file.Filename = fmt.Sprintf("%d-%d.%s", userid, time.Now().Unix(), extension)
+// 		if user.Name != "" {
+// 			updateUser.Name = user.Name
+// 		}
+// 		if user.Email != "" {
+// 			updateUser.Email = user.Email
+// 		}
+// 		if user.Password != "" {
+// 			updateUser.Password = user.Password
+// 		}
+// 		if user.Role != "" {
+// 			updateUser.Role = user.Role
+// 		}
+// 		src, file, err := c.Request().FormFile("avatar")
+// 		if err != nil {
+// 			fmt.Println(err)
+// 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to upload avatar"))
+// 		}
+// 		ext := strings.Split(file.Filename, ".")
+// 		extension := ext[len(ext)-1]
+// 		check_extension := strings.ToLower(extension)
+// 		if check_extension != "jpg" && check_extension != "png" && check_extension != "jpeg" {
+// 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "file extention not allowed"))
+// 		}
+// 		if file.Size == 0 {
+// 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "illegal file size"))
+// 		} else if file.Size > 1050000 {
+// 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "file size exceeded the limit"))
+// 		}
 
-		sess := session.Must(util.GetAWSSession())
+// 		file.Filename = fmt.Sprintf("%d-%d.%s", userid, time.Now().Unix(), extension)
 
-		uploader := s3manager.NewUploader(sess)
+// 		sess := session.Must(util.GetAWSSession())
 
-		_, err = uploader.Upload(&s3manager.UploadInput{
-			Bucket: aws.String(os.Getenv("AWS_BUCKET")),
-			Key:    aws.String(file.Filename),
-			Body:   src,
-		})
+// 		uploader := s3manager.NewUploader(sess)
 
-		// detect failure while uploading file
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, response.InternalServerError("failed", "Internal server error"))
-		}
-		updateUser.Avatar = fmt.Sprintf("https://capstone-group-5.s3.ap-southeast-1.amazonaws.com/%s", file.Filename)
+// 		_, err = uploader.Upload(&s3manager.UploadInput{
+// 			Bucket: aws.String(os.Getenv("AWS_BUCKET")),
+// 			Key:    aws.String(file.Filename),
+// 			Body:   src,
+// 		})
 
-		err_update := uc.repository.Update(userid, updateUser)
-		if err_update != nil {
-			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to fetch data"))
-		}
-		return c.JSON(http.StatusOK, response.SuccessOperationDefault("success", "success Update user"))
-	}
-}
+// 		if err != nil {
+// 			return c.JSON(http.StatusInternalServerError, response.InternalServerError("failed", "Internal server error"))
+// 		}
+// 		updateUser.Avatar = fmt.Sprintf("https://capstone-group-5.s3.ap-southeast-1.amazonaws.com/%s", file.Filename)
 
-func (uc UserController) Delete() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		id, role, err := middlewares.ExtractToken(c)
-		if err != nil {
-			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
-		}
-		// get id from param
-		userId, errConv := strconv.Atoi(c.Param("id"))
-		if errConv != nil {
-			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert id"))
-		}
+// 		err_update := uc.repository.Update(userid, updateUser)
+// 		if err_update != nil {
+// 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to fetch data"))
+// 		}
+// 		return c.JSON(http.StatusOK, response.SuccessOperationDefault("success", "success Update user"))
+// 	}
+// }
 
-		if userId != id {
-			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
-		}
-		
-		fmt.Println(role)
+// func (uc UserController) Delete() echo.HandlerFunc {
+// 	return func(c echo.Context) error {
+// 		id, _, err := middlewares.ExtractToken(c)
+// 		if err != nil {
+// 			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
+// 		}
 
-		// delete user based on id from database
-		errDelete := uc.repository.Delete(userId)
-		if errDelete != nil {
-			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "data not found"))
-		}
+// 		userId, errConv := strconv.Atoi(c.Param("id"))
+// 		if errConv != nil {
+// 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert id"))
+// 		}
 
-		return c.JSON(http.StatusOK, response.SuccessOperationDefault("success", "delete success"))
-	}
-}
+// 		if userId != id {
+// 			return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("unauthorized", "unauthorized access"))
+// 		}
+
+// 		errDelete := uc.repository.Delete(userId)
+// 		if errDelete != nil {
+// 			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "data not found"))
+// 		}
+
+// 		return c.JSON(http.StatusOK, response.SuccessOperationDefault("success", "delete success"))
+// 	}
+// }
 
 func (uc UserController) GetEmployees() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		users, err := uc.repository.GetEmployees()
 		if err != nil {
 			log.Println(err)
-			return c.JSON(http.StatusBadRequest, response.BadRequest("failed",err.Error()))
+			return c.JSON(http.StatusBadRequest, response.BadRequest("failed", err.Error()))
 		}
+
 		return c.JSON(http.StatusOK, response.SuccessOperation("success", "success get employees", users))
 	}
 }

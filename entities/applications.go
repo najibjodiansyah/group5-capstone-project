@@ -37,3 +37,25 @@ type ResponseApplication struct {
 	Status			string		`json:"status"`
 	Updatedat		string		`json:"updatedat"`
 }
+
+type ResponseApplicationWithDuration struct {
+    Id            int       `json:"id"`
+    Employeeid    int       `json:"employeeid"`
+    Employeename  string    `json:"employeename"`
+    Managerid     *int      `json:"managerid"`
+    Managername   *string   `json:"managername"`
+    Assetid       int       `json:"assetid"`
+    Assetname     string    `json:"assetname"`
+    Itemid        *int      `json:"itemid"`
+    ItemName      *string   `json:"itemname"`
+    Categoryid    int       `json:"categoryid"`
+    Categoryname  string    `json:"categoryname"`
+    Photo         string    `json:"photo"`
+    Requestdate   time.Time `json:"requestdate"`
+    Returndate    time.Time `json:"returndate"`
+    Specification string    `json:"specification"`
+    Description   string    `json:"description"`
+    Status        string    `json:"status"`
+    Updatedat     string    `json:"updatedat"`
+	Duration 	  string	`json:"duration"`
+}

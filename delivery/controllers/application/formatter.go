@@ -12,11 +12,11 @@ type InputApp struct {
 }
 
 
-type Inputstatus struct {
+type InputStatus struct {
 	Status 		string	`json:"status"`
 }
 
 type responseAll struct{
-	Totalpage int				`json:"totalpage"`	
-	App []entities.ResponseApplication	`json:"applications"`
+	Totalpage int									`json:"totalpage"`	
+	App []entities.ResponseApplicationWithDuration	`json:"applications"`
 }
