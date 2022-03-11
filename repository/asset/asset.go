@@ -166,7 +166,7 @@ func (ar *AssetRepository) GetAll(page int, category int, keyword string)([]enti
 }
 
 func (ar *AssetRepository) GetCountAssetUsed(assetid int)(int, error){
-	stmt, err := ar.db.Prepare(`select count(id) as total from items where availableStatus = "digunakan" or availableStatus = "pemeliharaan" and assetid = ? group by assetid`)
+	stmt, err := ar.db.Prepare(`select count(id) as total from items where not availableStatus = "tersedia" and assetid = ? group by assetid`)
 	if err != nil {
 		log.Println(err)
 		return 0, errors.New("internal server error")
