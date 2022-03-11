@@ -36,22 +36,15 @@ func (ac AuthController) Login() echo.HandlerFunc {
 		return c.JSON(http.StatusBadRequest, response.BadRequest("failed", err.Error()))
 	}
 
-	// detect unauthorized login (email unknown)
 	if loginData == (entities.User{}) {
 		return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "Email is unknown"))
 	}
 
-	// detect unauhorized login (password mismatch)
 	if err = bcrypt.CompareHashAndPassword([]byte(loginData.Password), []byte(input.Password)); err != nil {
 		return c.JSON(http.StatusUnauthorized, response.UnauthorizedRequest("failed", "Password does not match"))
 	}
 
-	token, err := middlewares.CreateToken(loginData.ID,loginData.Role)
-
-	// detect failure in creating token
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, response.InternalServerError("failed", err.Error()))
-	}
+	token, _ := middlewares.CreateToken(loginData.ID,loginData.Role)
 
 	var responseFormat LoginResponseFormat
 	responseFormat.Id = loginData.ID

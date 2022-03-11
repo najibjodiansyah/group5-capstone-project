@@ -150,12 +150,12 @@ func (ac AssetController)GetAll()echo.HandlerFunc{
 
 		categoryId, err := strconv.Atoi(category)
 			if err != nil {
-				return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert category_id"))
+				return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert category id"))
 			}
 
 		page, err := strconv.Atoi(pagination)
 			if err != nil {
-				return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert category_id"))
+				return c.JSON(http.StatusBadRequest, response.BadRequest("failed", "failed to convert page"))
 			}
 
 		assets,totalAsset, err := ac.repository.GetAll(page,categoryId,keyword)
